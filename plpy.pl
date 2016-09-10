@@ -44,11 +44,19 @@ while ($line = <>) {
         $line =~ s/;//g;
         print $line;
     # if (a > 3) {
-    } elsif ($line =~ /^\s*if\s\((.*)\)\s{/ || $line =~ /^\s*while\s\((.*)\)\s{/) {
-        $line =~ s/\(//g;
-        $line =~ s/\)//g;
+    } elsif ($line =~ /^\s*(if|for|while)\s\((.*)\)\s{/) {
+        ## $line =~ s{(.*)\)}{$1}xms; meaning?
+        # allow for grouping conditions
+        $line =~ s/\(//;
+        $line =~ s{(.*) \)}{$1};
+
+        # replace brackets
         $line =~ s/\s{/:/g;
+
+        # remove $ from vars
         $line =~ s/\$//g;
+
+        # logical operators
         $line =~ s/&&/and/g;
         $line =~ s/\|\|/or/g;
         $line =~ s/!/not /g;
