@@ -18,18 +18,22 @@ while ($line = <>) {
 
     # print "hello world\n";
     } elsif ($line =~ /^\s*print\s*"([^\$]*)\\n"[\s;]*$/) {
+
+        ## can probably combine this with the case below ... just capture
+        # everything between () and reuse it.
         # \s means whitespace:
         #       print     "blah blah blah\n"     ;
         # Python's print adds a new-line character by default
         # so we need to delete it from the Perl print statement
-
-        print "print(\"$1\")\n";
+        $replace = "print(\"$1\")";
+        $line =~ s{print.*}{$replace};
+        print $line;
 
     # print "$var\n";
     } elsif ($line =~ /^\s*print\s*"\$([A-Za-z0-9]+)\\n"[\s;]*$/) { # shitty
        # hack
         $replace = "print($1)";
-        $line =~ s/print.*/$replace/;
+        $line =~ s{print.*}{$replace};
         print $line;
 
     # print $var, "\n";
@@ -40,26 +44,26 @@ while ($line = <>) {
 
     # a = num;
     } elsif ($line =~ /^\s*\$([A-Za-z0-9]+)\s*=\s(.*);$/) {
-        $line =~ s/\$//g;
-        $line =~ s/;//g;
+        $line =~ s{\$}{}g;
+        $line =~ s{;}{}g;
         print $line;
     # if (a > 3) {
     } elsif ($line =~ /^\s*(if|for|while)\s\((.*)\)\s{/) {
         ## $line =~ s{(.*)\)}{$1}xms; meaning?
         # allow for grouping conditions
-        $line =~ s/\(//;
+        $line =~ s{\(}{};
         $line =~ s{(.*) \)}{$1};
 
         # replace brackets
-        $line =~ s/\s{/:/g;
+        $line =~ s{\s\{}{:}g;
 
         # remove $ from vars
-        $line =~ s/\$//g;
+        $line =~ s{\$}{}g;
 
         # logical operators
-        $line =~ s/&&/and/g;
-        $line =~ s/\|\|/or/g;
-        $line =~ s/!/not /g;
+        $line =~ s{&&}{and}g;
+        $line =~ s{\|\|}{or}g;
+        $line =~ s{!}{not }g;
         print $line;
 
     # }
