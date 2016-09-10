@@ -12,6 +12,9 @@ $count = 0;
 
 while ($count < 5) {
 	$count++;
+	if ($count == 3) {
+		last;
+	}
 }
 
 print $count, "\n";

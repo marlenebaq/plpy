@@ -79,7 +79,7 @@ while ($line = <>) {
         $replace = "$1 += 1";
         $line =~ s{\$.*}{$replace};
         print $line;
-    } elsif ($line =~ /^\s(last|next);$/) {
+    } elsif ($line =~ /^\s*(last|next);$/) {
         $line =~ s{last;}{break};
         $line =~ s{next;}{continue};
         print $line;
