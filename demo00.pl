@@ -18,3 +18,14 @@ while ($count < 5) {
 }
 
 print $count, "\n";
+
+while ($count < 10) {
+	print "Counting ...\n"
+	$count++;
+	if ($count > 6) {
+		next;
+	}
+	print "Only print me three times.\n"
+}
+
+print $count, "\n";
