@@ -34,3 +34,5 @@ while ($count > 0) {
 	$count--;
 	print $count, "\n";
 }
+
+this = sys.test;
