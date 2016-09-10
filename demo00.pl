@@ -1,4 +1,4 @@
 #!/usr/bin/perl -w
 # put your demo script here
 
-  print    "Hello guys\n"  ;
+if (this && that || this && !that) {

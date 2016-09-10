@@ -36,7 +36,7 @@ while ($line = <>) {
     } elsif ($line =~ /^\s*print\s*[^"]([^,]*)[^"],\s"\\n"[\s;]*$/) { # shitty
        # hack
         print "print($1)\n";
-        ## do the same thing here later..
+        ## do the same thing here later..g
 
     # a = num;
     } elsif ($line =~ /^\s*\$([A-Za-z0-9]+)\s*=\s(.*);$/) {
@@ -49,6 +49,9 @@ while ($line = <>) {
         $line =~ s/\)//g;
         $line =~ s/\s{/:/g;
         $line =~ s/\$//g;
+        $line =~ s/&&/and/g;
+        $line =~ s/\|\|/or/g;
+        $line =~ s/!/not /g;
         print $line;
 
     # }
