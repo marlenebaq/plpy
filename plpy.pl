@@ -75,14 +75,15 @@ while ($line = <>) {
 
     # }
     } elsif ($line =~ /}/) {
-    } elsif ($line =~ /^\s\$([A-Za-z0-9]+)\+\+;$/) {
-        $replace = "$1 += 1";
+    } elsif ($line =~ /^\s\$([A-Za-z0-9]+)((\+|-)){2};$/) {
+        $replace = "$1 $2= 1";
         $line =~ s{\$.*}{$replace};
         print $line;
     } elsif ($line =~ /^\s*(last|next);$/) {
         $line =~ s{last;}{break};
         $line =~ s{next;}{continue};
         print $line;
+
     } else {
         # Lines we can't translate are turned into comments
         # print "No match for:\n";

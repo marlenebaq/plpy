@@ -29,3 +29,8 @@ while ($count < 10) {
 }
 
 print $count, "\n";
+
+while ($count > 0) {
+	$count--;
+	print $count, "\n";
+}
