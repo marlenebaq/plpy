@@ -37,9 +37,16 @@ while ($line = <>) {
         print $line;
 
     # print $var, "\n";
-    } elsif ($line =~ /^\s*print\s*[^"]([^,]*)[^"],\s"\\n"[\s;]*$/) { # shitty
+    # print $a * $b, "\n";
+    } elsif ($line =~ /^\s*print\s*([^,]+),\s"\\n"[\s;]*$/) { # shitty
        # hack
-        print "print($1)\n";
+       # $replace = "print($1)";
+        $str_to_replace = $1;
+        $str_to_replace =~ s{\$}{}g;
+        $replace = "print($str_to_replace)";
+        $line =~ s{print.*}{$replace};
+        print $line;
+        # print "print($1)\n";
         ## do the same thing here later..g
 
     # a = num;

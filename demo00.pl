@@ -1,6 +1,9 @@
 #!/usr/bin/perl -w
-# put your demo script here
 
-if ( (this && that) || (this && !that) ) {
-for (this && that || this && !that) {
-while (this && that || this && !that) {
+$a = 2;
+$b = 18;
+
+if ( ($a == 2 && $b == 1) || ($a < 5 && !($b == 0)) ) {
+	$c = $a + 40;
+	print $c, "\n";
+}
