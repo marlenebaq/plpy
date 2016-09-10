@@ -24,16 +24,21 @@ while ($line = <>) {
         # so we need to delete it from the Perl print statement
 
         print "print(\"$print_text\")\n";
-    } elsif ($line =~ /^\s*print\s*"\$([A-Za-z0-9]+)\\n"[\s;]*$/) {
+    } elsif ($line =~ /^\s*print\s*"\$([A-Za-z0-9]+)\\n"[\s;]*$/) { # shitty
+       # hack
+        print "print($1)\n";
+    } elsif ($line =~ /^\s*print\s*[^"]([^,]*)[^"],\s"\\n"[\s;]*$/) { # shitty
+       # hack
         print "print($1)\n";
     } elsif ($line =~ /^\s*\$([A-Za-z0-9]+)\s*=\s(.*);$/) {
+        $line =~ s/\$//g;
+        print $line;
         # $answer = 42;
         # print "Translating var assignment:\n";
 
-        print "$1 = $2\n";
     } else {
         # Lines we can't translate are turned into comments
         # print "No match for:\n";
-        print "#$line\n";
+        print "#-->$line\n";
     }
 }
