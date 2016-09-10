@@ -1,12 +1,1 @@
-05/09/15	18:00	18:15	put the first real entry in diary.txt (delete this line!)
-
-10/09/16
-- Cloned git repo
-- Copied files to my local machine
-
-- Simple print statements print "[text]\n"; can be directly translated into print("[text]") --> precede and succeed "" with ()
-- Remove all trailing semicolons - rstrip(\;)
-
-- Set 0 is already completed
-- Worked on Set 0:
-	- Finished answer0, answer1, answer2
+10/09/15	20:00	21:04	coding	finished set01 with bad hacks
