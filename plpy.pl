@@ -66,6 +66,9 @@ sub translate_pl_line {
         # remove $ from vars
         $line =~ s{\$}{}g;
 
+        # change eq to == (value test, not identity)
+        $line =~ s{eq}{==}g;
+
         # logical operators
         $line =~ s{&&}{and}g;
         $line =~ s{\|\|}{or}g;
@@ -79,9 +82,9 @@ sub translate_pl_line {
     } elsif ($line =~ /^\s*chomp\s?(.*);$/) { # NOT TESTED
         # need to check if $1 is not empty ...
         $var = $1;
-        $var =~ s{\$}{};
+        $var =~ s{\$}{}g;
         $replace = "$var = $var.rstrip()";
-        $line =~ s{chomp*}{$replace};
+        $line =~ s{chomp.*}{$replace};
     } elsif ($line =~ /^\s*\$([A-Za-z0-9]+) = <STDIN>;$/) {
         $replace = "$1 = sys.stdin.readline()";
         $line =~ s{\$.*}{$replace};
@@ -89,6 +92,8 @@ sub translate_pl_line {
         push @header, "import sys\n"
     } elsif ($line =~ /}/) {
         $line = "";
+    # } elsif ($line =~) {
+
     } else {
         # Lines we can't translate are turned into comments
         # print "No match for:\n";
