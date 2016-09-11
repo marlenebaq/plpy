@@ -4,115 +4,156 @@
 # z5061800
 # http://cgi.cse.unsw.edu.au/~cs2041/assignments/plpy/
 
-## should create an array to add lines to dynamically, rather than printing
-# one by one since lines are not 1-1, e.g. need to handle imports
+my %imports = ();
+my %lookup = (
+    "<STDIN>" => "sys.stdin.readline()",
+);
+
+# MAIN
+while (my $pl_line = <>) {
+    our @py_code;
+    our @py_header;
+    translate_pl_line($pl_line);
+}
+my @py_lines = join('', @py_header,@py_code);
+print @py_lines;
 
 sub translate_pl_line {
-    ($line, @header) = @_;
-    if ($line =~ /^#!/ && $. == 1) {
-        # print "Translating interpreter line:\n";
+    my ($line) = @_;
+    my $whitespace = ($line =~ /^(\s*)/g)[0];
+    my $contents = ($line =~ /([^\s].*)/g)[0];
+
+    if ($contents) {
+        if ($contents =~ /^#!/ && $. == 1) {
         # translate #! line
-        $line = "";
-        push @header, "#!/usr/local/bin/python3.5 -u\n";
-    } elsif ($line =~ /^\s*#/ || $line =~ /^\s*$/) {
-        # print "Translating comment or blank line:\n";
-        # Blank & comment lines can be passed unchanged
-
-
-    # print "hello world\n";
-    } elsif ($line =~ /^\s*print\s*"([^\$]*)\\n"[\s;]*$/) {
-
-        ## can probably combine this with the case below ... just capture
-        # everything between () and reuse it.
-        # \s means whitespace:
-        #       print     "blah blah blah\n"     ;
-        # Python's print adds a new-line character by default
-        # so we need to delete it from the Perl print statement
-        $replace = "print(\"$1\")";
-        $line =~ s{print.*}{$replace};
-
-    # print "$var\n";
-    } elsif ($line =~ /^\s*print\s*"\$([A-Za-z0-9]+)\\n"[\s;]*$/) { # shitty
-       # hack
-        $replace = "print($1)";
-        $line =~ s{print.*}{$replace};
-
-    # print $var, "\n";
-    # print $a * $b, "\n";
-    } elsif ($line =~ /^\s*print\s*([^,]+),\s"\\n"[\s;]*$/) { # shitty
-       # hack
-       # $replace = "print($1)";
-        $str_to_replace = $1;
-        $str_to_replace =~ s{\$}{}g;
-        $replace = "print($str_to_replace)";
-        $line =~ s{print.*}{$replace};
-        # print "print($1)\n";
-        ## do the same thing here later..g
-
-    # a = num;
-    } elsif ($line =~ /^\s*\$([A-Za-z0-9]+)\s*=\s([^(<.*>)]*);$/) {
-        $line =~ s{\$}{}g;
-        $line =~ s{;}{}g;
-    # if (a > 3) {
-    } elsif ($line =~ /^\s*(if|for|while)\s\((.*)\)\s{/) {
-        ## $line =~ s{(.*)\)}{$1}xms; meaning?
-        # allow for grouping conditions
-        $line =~ s{\(}{};
-        $line =~ s{(.*)\)}{$1};
-
-        # replace brackets
-        $line =~ s{\s\{}{:}g;
-
-        # remove $ from vars
-        $line =~ s{\$}{}g;
-
-        # change eq to == (value test, not identity)
-        $line =~ s{eq}{==}g;
-
-        # logical operators
-        $line =~ s{&&}{and}g;
-        $line =~ s{\|\|}{or}g;
-        $line =~ s{!}{not }g;
-    } elsif ($line =~ /^\s\$([A-Za-z0-9]+)((\+|-)){2};$/) {
-        $replace = "$1 $2= 1";
-        $line =~ s{\$.*}{$replace};
-    } elsif ($line =~ /^\s*(last|next);$/) {
-        $line =~ s{last;}{break};
-        $line =~ s{next;}{continue};
-    } elsif ($line =~ /^\s*chomp\s?(.*);$/) { # NOT TESTED
-        # need to check if $1 is not empty ...
-        $var = $1;
-        $var =~ s{\$}{}g;
-        $replace = "$var = $var.rstrip()";
-        $line =~ s{chomp.*}{$replace};
-    } elsif ($line =~ /^\s*\$([A-Za-z0-9]+) = <STDIN>;$/) {
-        $replace = "$1 = sys.stdin.readline()";
-        $line =~ s{\$.*}{$replace};
-        ## TODO: make sure this only imports once
-        push @header, "import sys\n"
-    } elsif ($line =~ /}/) {
-        $line = "";
-    # } elsif ($line =~) {
-
+        $contents = "";
+        push @py_header, "#!/usr/local/bin/python3.5 -u\n";
+        } elsif ($contents =~ /print\s*(.*)/) {
+            # handle print statements
+            $contents = handle_print($1);
+        } elsif ($contents =~ /^\s*(if|while)\s*\((.*)\)\s*{/) {
+            # handle if and whiles
+            $contents = handle_conditional($1, $2);
+        } elsif ($contents =~ /foreach\s*\$([^\s]*)\s*\(@(.*)\)\s*{/) {
+            # handle foreach
+            $contents = handle_foreach($1, $2);
+        } elsif ($contents =~ /\$([a-z0-9]+)((\+|-)){2};$/i) {
+            # handle (in|de)crements
+            $contents = handle_inde_crement($1, $2);
+        } elsif ($contents =~ /((last|next);)$/) {
+            # handle last/next
+            $contents = handle_last_next($1);
+        } elsif ($contents =~ /chomp\s+(.*;)$/) {
+            # handle chomp
+            $contents = handle_chomp($1);
+        } elsif ($line =~ /\$([a-z0-9]+) = <STDIN>;$/i) {
+            # handle read from stdin
+            $contents = handle_read_stdin($1);
+        } elsif ($contents =~ /}/) {
+            # remove closing curly brace and the line it occupies
+            $whitespace = "";
+            $contents = "";
+        } elsif ($contents =~ /^\s*#/) {
+            # comments pass through unchanged
+        } else {
+            $contents =~ /^\s*(.*)/;
+            $contents = cleanup_remaining_syntax($1);
+        }
     } else {
-        # Lines we can't translate are turned into comments
-        # print "No match for:\n";
-        $line = "#--> $line\n";
+        $contents = "";
     }
+
+    $line = $whitespace . $contents;
+    push @py_code, $line;
 }
 
-while ($line = <>) {
-## YUCK
-    # print $line;
-#
-    # @imports = detect_imports($line);
-    translate_pl_line($line, @header);
-    push @py_lines, $line;
+# SUBROUTINES FOR SPECIFIC CASES
+
+sub handle_print {
+    my ($contents) = @_;
+    my $has_new_line = 0;
+
+    # remove only trailing new lines
+    if ($contents =~ /\\n"/) {
+        $has_new_line = 1;
+        $contents =~ s{,\s*"\\n"\s*;}{}g;
+        $contents =~ s{\\n\s*"\s*;}{"}g;
+    }
+    $contents =~ s{;}{}g;
+
+    if ($contents =~ /^"?\$([^\s\"]*)"?$/) {
+        $contents = $1;
+    } else {
+        my @components = split(' ', $contents);
+        my @vars;
+        foreach $component (@components) {
+            if (substr($component, 0, 1) eq '$') {
+                $component =~ /(\w+)/;
+                $component = "%s";
+                push @vars, $1;
+            }
+        }
+        $contents = join(' ', @components);
+        if (@vars) {
+                my @format = join(', ', @vars);
+                $contents .= "%(@format)";
+        }
+    }
+
+    if ($has_new_line == 0) {
+        $contents .= ", end=\"\"";
+    }
+    return "print($contents)\n";
 }
 
-push @py_code, @header;
-push @py_code, @py_lines;
+sub handle_conditional {## $line =~ s{(.*)\)}{$1}xms; meaning?
+    my ($statement_type, $contents) = @_;
+    # remove $ from vars
+    $contents =~ s{\$}{}g;
+    # change eq to == (value test, not identity)
+    $contents =~ s{eq}{==}g;
+    # logical operators
+    $contents =~ s{&&}{and}g;
+    $contents =~ s{\|\|}{or}g;
+    $contents =~ s{!}{not }g;
 
-for (@py_code) {
-    print;
+    return "$statement_type " . $contents . ":\n";
+}
+
+sub handle_foreach {
+    my ($iterator, $iterable) = @_;
+    return "for $iterator in $iterable:\n";
+}
+
+sub handle_inde_crement {
+    my ($var, $operator) = @_;
+    return "$var $operator= 1\n";
+}
+
+sub handle_last_next {
+    my ($contents) = @_;
+    $contents =~ s{last;}{break};
+    $contents =~ s{next;}{continue};
+    return "$contents\n";
+}
+
+sub handle_chomp {
+    my ($var) = @_;
+    # TODO: need to check if $1 is empty or not to handle $_ ...
+    $var =~ s{[\$;]}{}g;
+    return "$var = $var.rstrip()\n";
+}
+
+sub handle_read_stdin {
+    my ($var) = @_;
+    # TODO: make sure this only imports once
+    push @py_header, "import sys\n";
+    return "$var = $lookup{\"<STDIN>\"}\n";
+}
+
+sub cleanup_remaining_syntax {
+    my ($contents) = @_;
+    $contents =~ s{[\$@%;]}{}g;
+    # $contents =~ s{\.\.}{:}g; # Note: this will capture .. in strings
+    return "$contents\n";
 }
