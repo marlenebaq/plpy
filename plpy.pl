@@ -28,6 +28,7 @@ sub translate_pl_line {
     my ($line) = @_;
     my $whitespace = ($line =~ /^(\s*)/g)[0];
     my $contents = ($line =~ /([^\s].*)/g)[0];
+    my $no_line = 0;
 
     if ($contents) {
         $contents = prelim_syntax_cleanup($contents);
@@ -46,7 +47,7 @@ sub translate_pl_line {
             # TODO: handle else {
             $contents = handle_conditional($1, $2);
             #foreach $i (0..4) {
-        } elsif ($contents =~ /foreach\s*\$([^\s]*)\s*([^\s]*)\s*{/) {
+        } elsif ($contents =~ /foreach\s*\$([^\s]*)\s*(.*)\s*{/) {
             # handle foreach
             $contents = handle_foreach($1, $2);
         } elsif ($contents =~ /\$([a-z0-9]+)((\+|-)){2}$/i) {
@@ -67,9 +68,8 @@ sub translate_pl_line {
             # $1 - var to assign
             $contents = handle_read_stdin($1);
         } elsif ($contents =~ /}/) {
-            # remove closing curly brace and the line it occupies
             $whitespace = "";
-            $contents = "";
+            $no_line = 1;
         } elsif ($contents =~ /^\s*#/) {
             # comments pass through unchanged
             $contents .= "\n";
@@ -81,7 +81,9 @@ sub translate_pl_line {
         $line = $whitespace . $contents;
     }
 
-    push @py_code, $line;
+    unless ($no_line) {
+        push @py_code, $line;
+    }
 }
 
 # SUBROUTINES FOR LINE TYPES
@@ -170,9 +172,10 @@ sub handle_conditional {## $line =~ s{(.*)\)}{$1}xms; meaning?
 
 sub handle_foreach {
     my ($iterator, $iterable) = @_;
-    $iterable =~ s{\(}{};
-    $iterable =~ s{\)}{};
-    $iterable =~ s{\@}{};
+    if ($iterable =~ /\(\s*(@.*)\)/) {
+        $iterable = $1;
+    }
+    $iterable =~ s{\s+$}{};
     return "for $iterator in $iterable:\n";
 }
 
