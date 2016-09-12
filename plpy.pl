@@ -4,7 +4,9 @@
 # z5061800
 # http://cgi.cse.unsw.edu.au/~cs2041/assignments/plpy/
 
-my %imports = ();
+my %imports = (
+    "sys" => "0",
+);
 my %lookup = (
     "<STDIN>" => "sys.stdin.readline()",
 
@@ -69,6 +71,7 @@ sub translate_pl_line {
             $contents = "";
         } elsif ($contents =~ /^\s*#/) {
             # comments pass through unchanged
+            $contents .= "\n";
         } else {
             $contents =~ /^\s*(.*)/;
             # cleanup variable assignments
@@ -87,6 +90,15 @@ sub prelim_syntax_cleanup {
     my ($contents) = @_;
     $contents =~ s{;$}{}g; # remove only trailing semicolons
     $contents =~ s{\.\.}{:}g; # Note: this will capture .. in strings
+    if ($contents =~ /\@ARGV/) {
+        $contents =~ s{\@ARGV}{sys.argv[1:]}g;
+        try_import("sys");
+    }
+    if ($contents =~ /join\((.*)\)/) {
+        my @join_args = split(', ', $1);
+        my $py_join = "$join_args[0].join($join_args[1])";
+        $contents =~ s{join.*\)}{$py_join};
+    }
     return $contents;
 }
 
@@ -173,8 +185,8 @@ sub handle_chomp {
 
 sub handle_read_stdin {
     my ($var) = @_;
-    # TODO: make sure this only imports once
-    push @py_header, "import sys\n";
+    try_import("sys");
+    # it is not necessarily clear that this uses sys...
     return "$var = $lookup{\"<STDIN>\"}\n";
 }
 
@@ -182,4 +194,12 @@ sub cleanup_remaining_syntax {
     my ($contents) = @_;
     $contents =~ s{[\$@%;]}{}g;
     return "$contents\n";
+}
+
+sub try_import {
+    my ($module) = @_;
+    if ($imports{$module} == 0) {
+        push @py_header, "import $module\n";
+        $imports{$module} = 1;
+    }
 }
