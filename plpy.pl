@@ -55,11 +55,11 @@ sub translate_pl_line {
             # handle last/next
             # $1 - all content
             $contents = handle_last_next($1);
-        } elsif ($contents =~ /chomp\s+(.*;)$/) {
+        } elsif ($contents =~ /chomp\s+(.*)$/) {
             # handle chomp
             # $1 - var to chomp
             $contents = handle_chomp($1);
-        } elsif ($line =~ /\$([a-z0-9]+) = <STDIN>$/i) {
+        } elsif ($line =~ /\$([a-z0-9]+) = <STDIN>/i) {
             # handle read from stdin
             # $1 - var to assign
             $contents = handle_read_stdin($1);
