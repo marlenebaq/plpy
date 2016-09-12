@@ -208,7 +208,10 @@ sub handle_read_stdin {
 
 sub cleanup_remaining_syntax {
     my ($contents) = @_;
-    $contents =~ s{[\$\@%;]}{}g;
+    $contents =~ s{[\$\@;]}{}g;
+    if ($contents =~ /%(\w+)/) {
+        $contents =~ s{%\w+}{$1}g;
+    }
     return "$contents\n";
 }
 
