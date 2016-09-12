@@ -4,6 +4,8 @@
 # z5061800
 # http://cgi.cse.unsw.edu.au/~cs2041/assignments/plpy/
 
+# WHAT IS PYTHON EQUIVALENT OF PERL exit AND WHY ARE THERE SO MANY?
+
 my %imports = (
     "sys" => "0",
 );
