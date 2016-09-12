@@ -45,7 +45,8 @@ sub translate_pl_line {
             # $2 - condition
             # TODO: handle else {
             $contents = handle_conditional($1, $2);
-        } elsif ($contents =~ /foreach\s*\$([^\s]*)\s*\(@(.*)\)\s*{/) {
+            #foreach $i (0..4) {
+        } elsif ($contents =~ /foreach\s*\$([^\s]*)\s*([^\s]*)\s*{/) {
             # handle foreach
             $contents = handle_foreach($1, $2);
         } elsif ($contents =~ /\$([a-z0-9]+)((\+|-)){2}$/i) {
@@ -72,11 +73,11 @@ sub translate_pl_line {
         } elsif ($contents =~ /^\s*#/) {
             # comments pass through unchanged
             $contents .= "\n";
-        } else {
-            $contents =~ /^\s*(.*)/;
-            # cleanup variable assignments
-            $contents = cleanup_remaining_syntax($1);
         }
+        $contents =~ /^\s*(.*)/;
+        # cleanup variable assignments
+        $contents = cleanup_remaining_syntax($1);
+
         $line = $whitespace . $contents;
     }
 
@@ -89,7 +90,15 @@ sub prelim_syntax_cleanup {
     # cleanup ; (trailing), ..
     my ($contents) = @_;
     $contents =~ s{;$}{}g; # remove only trailing semicolons
-    $contents =~ s{\.\.}{:}g; # Note: this will capture .. in strings
+    # TODO: optimise/shorten/safen (replaces any ..)
+    if ($contents =~ /\[\w*..\w*\]/) {
+        $contents =~ s{\.\.}{:};
+    }
+    if ($contents =~ /\((\w*)\.\.(\w*)\)/) {
+        my $start = $1;
+        my $end = $2 + 1;
+        $contents =~ s{\(\w*\.\.\w*\)}{range($start, $end)};
+    }
     if ($contents =~ /\@ARGV/) {
         $contents =~ s{\@ARGV}{sys.argv[1:]}g;
         try_import("sys");
@@ -161,6 +170,9 @@ sub handle_conditional {## $line =~ s{(.*)\)}{$1}xms; meaning?
 
 sub handle_foreach {
     my ($iterator, $iterable) = @_;
+    $iterable =~ s{\(}{};
+    $iterable =~ s{\)}{};
+    $iterable =~ s{\@}{};
     return "for $iterator in $iterable:\n";
 }
 
@@ -192,7 +204,7 @@ sub handle_read_stdin {
 
 sub cleanup_remaining_syntax {
     my ($contents) = @_;
-    $contents =~ s{[\$@%;]}{}g;
+    $contents =~ s{[\$\@%;]}{}g;
     return "$contents\n";
 }
 

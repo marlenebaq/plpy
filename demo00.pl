@@ -36,9 +36,9 @@ print "Does this work now?\n";
 
 @arr = (10, 20, 30);
 foreach $num (@arr) {
-	print $num, "\n";
+    print $num, "\n";
     if ($num == 8) {
-        print "Hello";
+         print "Hello";
     }
 }
 print "Does this still work?\n";
