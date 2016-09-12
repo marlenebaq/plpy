@@ -29,13 +29,14 @@ sub translate_pl_line {
     my $whitespace = ($line =~ /^(\s*)/g)[0];
     my $contents = ($line =~ /([^\s].*)/g)[0];
     my $no_line = 0;
+    my $array_ref = \@py_code;
 
     if ($contents) {
         $contents = prelim_syntax_cleanup($contents);
         if ($contents =~ /^#!/ && $. == 1) {
             # translate #! line
-            $contents = "";
-            push @py_header, "#!/usr/local/bin/python3.5 -u\n";
+            $array_ref = \@py_header;
+            $contents = "#!/usr/local/bin/python3.5 -u\n";
         } elsif ($contents =~ /print\s*(.*)/) {
             # handle print statements
             # $1 - all content
@@ -68,21 +69,21 @@ sub translate_pl_line {
             # $1 - var to assign
             $contents = handle_read_stdin($1);
         } elsif ($contents =~ /}/) {
-            $whitespace = "";
             $no_line = 1;
         } elsif ($contents =~ /^\s*#/) {
             # comments pass through unchanged
             $contents .= "\n";
         }
+
         $contents =~ /^\s*(.*)/;
         # cleanup variable assignments
         $contents = cleanup_remaining_syntax($1);
-
-        $line = $whitespace . $contents;
+    } else {
+        $contents = "";
     }
-
     unless ($no_line) {
-        push @py_code, $line;
+        $line = $whitespace . $contents;
+        push @{$array_ref}, $line;
     }
 }
 
