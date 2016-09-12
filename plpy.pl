@@ -102,8 +102,9 @@ sub handle_print {
         $contents =~ s{\\n\s*"\s*$}{"}g;
     }
 
-    if ($contents =~ /^"?\$([^\s\"]*)"?$/) {
+    if ($contents =~ /^([^"]*)$/ || $contents =~ /^"?\$([^\s\"]*)"?$/) {
         $contents = $1;
+        $contents =~ s{\$}{}g;
     } else {
         my @components = split(' ', $contents);
         my @vars;
