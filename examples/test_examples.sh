@@ -1,15 +1,10 @@
 #!/bin/bash
-
-# files=( *.pdf )
-# echo "${files[@]%.pdf}"
-
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m'
-# TESTS_FAILED=()
 NUM_FAILED=0
 NUM_PASSED=0
 
@@ -37,16 +32,15 @@ test_against() {
 	if [ $NUM_FAILED -ne 0 ]; then
     	NUM_TESTS=$((NUM_FAILED + NUM_PASSED))
 		echo -e "\n${RED}$NUM_FAILED out of $NUM_TESTS${NC} tests failed."
-		echo "Failed tests: ${TESTS_FAILED[*]}\n"
+		echo -e "Failed tests: ${TESTS_FAILED[*]}\n"
 	else
 		echo -e "\n${GREEN}OK. $NUM_PASSED${NC} passed.\n"
 	fi
 }
 
+# TODO: allow all arg
 for arg in "$@"; do
 	cd $arg
 	test_against $arg
 	cd ..
 done
-
-# TODO: allow all arg
