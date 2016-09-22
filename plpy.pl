@@ -6,20 +6,32 @@
 
 # WHAT IS PYTHON EQUIVALENT OF PERL exit AND WHY ARE THERE SO MANY?
 
+# use constant {
+#     INT => 'int',
+#     FLOAT => 'float',
+#     STRING => 
+# };
+
 my %imports = (
     "sys" => "0",
+    "fileinput" => "0",
+    "re" => "0",
 );
 my %lookup = (
-    "<STDIN>" => "sys.stdin.readline()",
+    "<STDIN>" => "sys.stdin",
+    "<>" => "fileinput.input()",
 
     "&&" => "and",
     "||" => "or",
     "!" => "not ",
 );
 
+my %all_vars = ();
+# "var_name" => "type",
+
 # MAIN
 while (my $pl_line = <>) {
-    our @py_code;
+    our @py_code; # TODO: stop using our wtf
     our @py_header;
     translate_pl_line($pl_line);
 }
@@ -39,21 +51,31 @@ sub translate_pl_line {
             # translate #! line
             $array_ref = \@py_header;
             $contents = "#!/usr/local/bin/python3.5 -u\n";
+        } elsif ($contents =~ /#/) {
+            # comments pass through unchanged
+            $contents .= "\n";
         } elsif ($contents =~ /print\s*(.*)/) {
             # handle print statements
             # $1 - all content
             $contents = handle_print($1);
-        } elsif ($contents =~ /^\s*(if|elsif|while)\s*\((.*)\)\s*{/) {
+        } elsif ($contents =~ /(if|elif|while)\s*\((.*<?>?.*)\)\s*{/) {
+            # NOTE: does not take while (< ... >)
+            # NEED TO FIX.
             # handle if and whiles
             # $1 - condition type
             # $2 - condition
             # TODO: handle else {
+            # print "CONDITIONAL---$contents\n";
             $contents = handle_conditional($1, $2);
             #foreach $i (0..4) {
-        } elsif ($contents =~ /foreach\s*\$([^\s]*)\s*(.*)\s*{/) {
+        } elsif ($contents =~ /else/) {
+            $contents = "else:\n"
+        } elsif ($contents =~ /for(each)?\s+\$(\w+)\s+(.+)\s*{/) {
             # handle foreach
-            $contents = handle_foreach($1, $2);
-        } elsif ($contents =~ /\$([a-z0-9]+)((\+|-)){2}$/i) {
+            # $1 - iterator
+            # $2 - iterable
+            $contents = handle_foreach($2, $3);
+        } elsif ($contents =~ /\$(\w+)((\+|-)){2}$/i) {
             # handle (in|de)crements
             # $1 - var to (in|de)crement
             # $2 - operator (+|-)
@@ -66,15 +88,23 @@ sub translate_pl_line {
             # handle chomp
             # $1 - var to chomp
             $contents = handle_chomp($1);
-        } elsif ($line =~ /\$([a-z0-9]+) = <STDIN>/i) {
-            # handle read from stdin
+        } elsif ($contents =~ /while \(\$(\w+) = <(.*)>\)/i) {
+            # TODO: convert while (<>) to for line in fileinput.input()
+            # handle read in
             # $1 - var to assign
-            $contents = handle_read_stdin($1);
+            # $2 - 'filehandle' (change wording...)
+            $contents = handle_while_read_in($1, $2);
+        } elsif ($contents =~ /\$(.*) =~ s\/(.*)\/(.*)\/(.*)/) {
+            # keep in mind input will be s///, probably not s{}{}
+            # TODO: should all whitespace be \s, or just use ' ' for easier
+            # reading?
+            # $1 - expression to sub
+            # $2 - find
+            # $3 - replace
+            # $4 - flags
+            $contents = handle_re_sub($1, $2, $3, $4)
         } elsif ($contents =~ /}/) {
             $no_line = 1;
-        } elsif ($contents =~ /^\s*#/) {
-            # comments pass through unchanged
-            $contents .= "\n";
         }
 
         $contents =~ /^\s*(.*)/;
@@ -91,18 +121,34 @@ sub translate_pl_line {
 
 # SUBROUTINES FOR LINE TYPES
 
+# TODO: handle print(ARGV[i]) -> print(sys.argv[i + 1])
 sub prelim_syntax_cleanup {
     # cleanup ; (trailing), ..
     my ($contents) = @_;
     $contents =~ s{;$}{}g; # remove only trailing semicolons
+    $contents =~ s{elsif}{elif}g;
     # TODO: optimise/shorten/safen (replaces any ..)
     if ($contents =~ /\[\w*..\w*\]/) {
         $contents =~ s{\.\.}{:};
     }
-    if ($contents =~ /\((\w*)\.\.(\w*)\)/) {
-        my $start = $1;
-        my $end = $2 + 1;
-        $contents =~ s{\(\w*\.\.\w*\)}{range($start, $end)};
+    # TODO: refactor!!! spaghetti!!!
+    if ($contents =~ /\((.*)\.\.(.*)\)/) {
+        my $start = "";
+        my $end = "";
+        unless ($2 eq "\$#ARGV") {
+            $start = $1;
+            $end = $2 + 1;
+        } elsif ($1 == 0) {
+            $end = "len(sys.argv) - 1";
+        }
+        my $replace;
+        if ($start ne "") {
+            $replace = "range($start, $end)";
+        } else {
+            # implied range(0, end)
+            $replace = "range($end)";
+        }
+        $contents =~ s{\(.*\.\..*\)}{$replace};
     }
     if ($contents =~ /\@ARGV/) {
         $contents =~ s{\@ARGV}{sys.argv[1:]}g;
@@ -113,6 +159,12 @@ sub prelim_syntax_cleanup {
         my $py_join = "$join_args[0].join($join_args[1])";
         $contents =~ s{join.*\)}{$py_join};
     }
+    if ($contents =~ /split\((.*)\)/) {
+        my @split_args = split(', ', $1);
+        my $py_split = "$split_args[1].split($split_args[0])";
+        $contents =~ s{split.*\)}{$py_split};
+    }
+
     return $contents;
 }
 
@@ -132,19 +184,23 @@ sub handle_print {
         $contents = $1;
         $contents =~ s{\$}{}g;
     } else {
-        my @components = split(' ', $contents);
+        # TODO: allow "--$var--"
+        my @components = split(/\s+/, $contents);
         my @vars;
         foreach $component (@components) {
-            if (substr($component, 0, 1) eq '$') {
-                $component =~ /(\w+)/;
-                $component = "%s";
+            if ($component =~ /\$\w+/) {
+                $component =~ s{(\w+)}{%s};
                 push @vars, $1;
             }
         }
         $contents = join(' ', @components);
         if (@vars) {
-                my @format = join(', ', @vars);
-                $contents .= "%(@format)";
+            my @str_format = join(', ', @vars);
+            if (scalar @vars > 1) {
+                $contents .= " % (@str_format)";
+            } else {
+                $contents .= " % @str_format";
+            }
         }
     }
 
@@ -156,10 +212,6 @@ sub handle_print {
 
 sub handle_conditional {## $line =~ s{(.*)\)}{$1}xms; meaning?
     my ($statement_type, $condition) = @_;
-
-    if ($statement_type eq "elsif") {
-        $statement_type = "elif" ;
-    }
 
     # remove $ from vars
     $condition =~ s{\$}{}g;
@@ -175,7 +227,7 @@ sub handle_conditional {## $line =~ s{(.*)\)}{$1}xms; meaning?
 
 sub handle_foreach {
     my ($iterator, $iterable) = @_;
-    if ($iterable =~ /\(\s*(@.*)\)/) {
+    if ($iterable =~ /^\((.*)\)/) {
         $iterable = $1;
     }
     $iterable =~ s{\s+$}{};
@@ -201,25 +253,58 @@ sub handle_chomp {
     return "$var = $var.rstrip()\n";
 }
 
-sub handle_read_stdin {
-    my ($var) = @_;
-    try_import("sys");
+sub handle_while_read_in {
+    # TODO: change varname '$stream' (is that really what it refers to?)
+    my ($var, $stream) = @_;
+    if ($stream eq "STDIN") {
+        try_import("sys");
+    } elsif ($stream eq "") {
+        try_import("fileinput");
+    }
     # it is not necessarily clear that this uses sys...
-    return "$var = $lookup{\"<STDIN>\"}\n";
+    return "for $var in $lookup{\"<$stream>\"}:\n";
+}
+
+sub handle_re_sub {
+    my ($expr, $find, $replace, $flags) = @_;
+    try_import("re");
+    return "$expr = re.sub(r'$find', '$replace', $expr)";
 }
 
 sub cleanup_remaining_syntax {
     my ($contents) = @_;
-    $contents =~ s{[\$\@;]}{}g;
-    if ($contents =~ /%(\w+)/) {
-        $contents =~ s{%\w+}{$1}g;
+
+    if ($contents !~ /^\s*#/) {
+        $contents =~ s{[\$\@;]}{}g;
+        # do not replace %s, %d, %f
+        # TODO: fix this is retarded
+        $contents =~ s{%([a-ceg-rt-z]+)}{$1}gi;
     }
+    # note -> takes ANYTHING in <>, even in print etc.
+    if ($contents =~ /(<.*>)/) {
+        # TODO: change name
+        # TODO: check if this is a good assumption
+        # replaces stuff like STDIN => sys.stdin
+        my $replace = $lookup{"$1"};
+        if ($replace =~ /sys/) {
+            $replace .= ".readline()";
+            try_import("sys");
+        }
+        $contents =~ s{<.*>}{$replace};
+    }
+    $contents =~ s{<(.*)>}{}g;
+
     return "$contents\n";
 }
 
 sub try_import {
     my ($module) = @_;
     if ($imports{$module} == 0) {
+        # TODO: import a, b, c -> not import a, import b, import c
+        # simply create @modules array sorted alphabetically,
+        # which is pushed onto @py_header
+        # push @modules, $module
+        # sort @modules
         push @py_header, "import $module\n";
         $imports{$module} = 1;
     }

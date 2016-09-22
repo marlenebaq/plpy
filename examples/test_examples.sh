@@ -9,28 +9,30 @@ EXECUTION_ONLY=0
 num_failed=0
 num_passed=0
 
+
 execution_test() {
 	test_file=$1
 	perl $test_file > pl_out.txt
 	python3.5 -u tmp.py > py_out.txt
 	diff_=$(diff py_out.txt pl_out.txt)
-	echo "hello"
 	if [ "$diff_" != "" ]; then
 		echo -e "${RED} \xE2\x9C\x98 $test_file${NC}"
 			echo -e " There are differences between your and the sample output, and your code did not pass fallback execution tests."
-			echo "  The code diff (<yours, >theirs):"
+			echo " ==> The CODE diff (<yours, >theirs):"
 			diff tmp.py ${test_file[@]%.pl}.py # | colordiff
-			echo "  The execution output (<yours, >theirs):"
+			echo " ==> The EXECUTION output (<yours, >theirs):"
 			diff py_out.txt pl_out.txt # | colordiff
 			tests_failed[$num_failed]=$test_file
 			num_failed=$((num_failed + 1))
-			echo "num failed $num_failed"
 	else
-		if [ $EXECUTION_ONLY -ne 0 ]; then
-			echo "Your code did not match the sample code, but the execution output was the same."
-			echo -e "${GREEN} \xE2\x9C\x94 $test_file${NC}"
-
+		if [ $EXECUTION_ONLY -ne 1 ]; then
+			## CAVEAT: this is super basic and does not work for programs needing input or args.
+			echo "Your code did not match any sample code but the execution output was the same,"
+			echo "assuming this program does not require input."
+			echo " ==> The CODE diff (<yours, >theirs):"
+			diff tmp.py ${test_file[@]%.pl}.py # | colordiff
 		fi
+			echo -e "${GREEN} \xE2\x9C\x94 $test_file${NC}"
 	fi
 
 	rm p*_out.txt
@@ -44,9 +46,8 @@ test_against() {
 	for test_file in `ls -f *.pl`; do
 		perl ../../plpy.pl $test_file > tmp.py
 		diff_=$(diff tmp.py ${test_file[@]%.pl}.py)
-		if [ "$diff_" != "" ]; then
+		if [ "$diff_" != "" ]; then #  || [ ! -f ${test_file[@]%.pl} ]
 			execution_test $test_file
-			echo $num_failed
 		else
 			echo -e "${GREEN} \xE2\x9C\x94 $test_file${NC}"
 			num_passed=$((num_passed + 1))
@@ -70,10 +71,12 @@ test_against() {
 for f in "$@"; do
 	case "$f" in
 		-h|--help)
-			# echo something
+			echo "Usage: $0 [-e] dir1 [dir2 ...]"
+			echo -e "  -e | --execution\n  Don't run code diffs, only diff execution output"
 			;;
 		-e|--execute)
 			EXECUTION_ONLY=1
+			echo -e "${PURPLE}ONLY testing execution output${NC}"
 			;;
 		*)
 			test_against $f
