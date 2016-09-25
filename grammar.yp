@@ -1,0 +1,5 @@
+%%
+exp:    exp '+' exp
+    |   exp '-' exp # multiple RHS
+    ;
+%%
