@@ -104,9 +104,12 @@ assignment  : var '=' expr
                     $symtab{$_[1]} = $_[3];
                     "$_[1] = $_[3]";
                 }
-            | var '=' READ_OP
+            | var '=' read_op { return "$_[1] $_[2] $_[3]"; }
+            ;
+
+read_op     : STDIN
                 {
-                    my $read_op = $_[3];
+                    my $read_op = $_[1];
                     return handle_read_op($read_op);
                 }
             ;

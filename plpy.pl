@@ -52,7 +52,7 @@ sub lex {
     $$lineData =~ s{^\s*>=}{} and return ("GTE", undef);
     $$lineData =~ s{^\s*<=}{} and return ("LTE", undef);
     $$lineData =~ s{^\s*chomp}{} and return ("CHOMP", undef);
-    $$lineData =~ s{^\s*<(.*)>}{} and return ("READ_OP", $1);
+    $$lineData =~ s{^\s*<(.*)>}{} and return ("STDIN", $1);
     $$lineData =~ s{^\s*(join\s*)}{} and return ("JOIN", $1);
     $$lineData =~ s{^\s*([\$@%])}{} and return ("VAR_SYMBOL", $1); #
     $$lineData =~ s{^\s*([\n=\*\+\-/\(\)><\{])}{} and return ($1, $1); #
