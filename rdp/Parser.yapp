@@ -1,0 +1,211 @@
+%{  my %symtab;
+    my %printab;
+    my %imports;
+    my @print_vars;
+    my @py_header;
+    my @py_code; %}
+%token NUMBER
+%token SHEBANG
+%token PRINT
+%token END_OF_FILE
+%token COMMENT
+%token EMPTY_LINE
+%token WHITESPACE
+%token WORD
+%token QUOTE
+%token SEPARATOR
+%token IF
+%token NO_LINE
+%token GTE
+%token LTE
+%token CHOMP
+%token JOIN
+%left '-' '+'
+%left '*' '/'
+%left '<' '>'
+
+%%
+
+program     : line '\n'
+            | program line '\n'
+            ;
+
+line        : statement
+                {
+                    my $s = $_[1];
+                    # print "$s\n";
+                    push @py_code, "$s\n";
+                    do_imports($s);
+                }
+            | COMMENT { push @py_code, "$_[1]\n"; }
+            | EMPTY_LINE { push @py_code, "\n"; }
+            | END_OF_FILE { print_py(); exit 0; }
+            | SHEBANG { push @py_header, "#!/usr/local/bin/python3.5 -u\n"; }
+            | NO_LINE
+            ;
+
+statement   : print_st
+            | assignment
+            | condition
+            | loop
+            | chomp
+            | string_func
+            | LAST { return "break"; }
+            | NEXT { return "continue"; }
+            | WHITESPACE statement { return join('', $_[1], $_[2]); }
+            ;
+
+string_func : JOIN '(' string SEPARATOR var ')'
+                {
+                    # print "woo\n";
+                    # print "$_[3].join($_[4])";
+                    return "$_[3].join($_[5])";
+                }
+            ;
+
+print_st    : PRINT print_arg
+                {
+                    my $print_tok = $_[1];
+                    my $args = $_[2];
+                    return handle_print($print_tok, $args);
+                }
+            ;
+
+print_arg   : expr
+            | string_func
+            | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
+            ;
+
+string      : EMPTY_STRING { return "$_[1]"; }
+            | QUOTE sentence QUOTE { return "$_[1]$_[2]$_[3]" }
+            ;
+
+sentence    : WORD
+# TODO: check type
+            | var
+                {
+                    my $var = $_[1];
+                    push @print_vars, $var;
+                    return $symtab{$var} =~ m{\d+} ? "%d" : "%s";
+                }
+            | NEW_LINE
+            | sentence WORD { return "$_[1] $_[2]";}
+            | sentence var
+            | sentence NEW_LINE { return "$_[1]\\n"; }
+            ;
+
+var         : VAR_SYMBOL WORD { return handle_var($_[2]); }
+            # | VAR_SYMBOL WORD index { return handle_var($_[2]); }
+            ;
+
+assignment  : var '=' expr
+                {
+                    # print "assign\n";
+                    $symtab{$_[1]} = $_[3];
+                    "$_[1] = $_[3]";
+                }
+            | var '=' READ_OP
+                {
+                    my $read_op = $_[3];
+                    return handle_read_op($read_op);
+                }
+            ;
+
+condition   : IF '(' truth ')' '{' { "$_[1] $_[3]:" }
+            ;
+
+expr        : expr '+' expr { "$_[1] + $_[3]" }
+            | expr '-' expr { "$_[1] - $_[3]" }
+            | expr '*' expr { "$_[1] * $_[3]" }
+            | expr '/' expr { "$_[1] / $_[3]" }
+            | var
+            | string
+            | NUMBER
+            ;
+
+truth       : expr '>' expr { "$_[1] > $_[3]" }
+            | expr '<' expr { "$_[1] < $_[3]" }
+            | expr GTE expr { "$_[1] >= $_[3]" }
+            | expr LTE expr { "$_[1] <= $_[3]" }
+            | expr EQUAL expr { "$_[1] == $_[3]" }
+            | expr NOT_EQUAL expr { "$_[1] != $_[3]" }
+            | expr
+            ;
+
+loop        : LOOP_TYPE '(' truth ')' '{' { "$_[1] $_[3]:" }
+            ;
+
+chomp       : CHOMP #TODO
+            | chomp var
+                {
+                    my $var = $_[2];
+                    return handle_chomp($var);
+                }
+            ;
+%%
+
+sub print_py {
+    my @modules;
+    foreach my $module (keys %imports ){
+        push @modules, $module;
+    }
+    push (@py_header, (join('', "import ", join(', ', @modules)) . "\n"));
+    push my @py_program, (@py_header, @py_code);
+    for (@py_program) {
+        print "$_";
+    }
+}
+
+sub handle_print {
+    my $print_tok = $_[0];
+    my $arg = $_[1];
+    # print "----$print_tok $arg\n";
+    my $has_newline = 0;
+    if ($arg =~ m{\\n["']$}) {
+        $has_newline = 1;
+    } else {
+        $has_newline = 0;
+    }
+    if (scalar @print_vars > 0) {
+        my @str_format = join(', ', @print_vars);
+        $arg .= " % (@str_format)";
+    }
+
+    if ($has_newline == 1) {
+        $arg =~ s{,\s*"\\n"$}{};
+        $arg =~ s{\\n}{};
+    } else {
+        $arg .= ", end=\"\"";
+    }
+    return "$print_tok($arg)";
+}
+
+sub handle_read_op {
+    my $read_op = $_[0];
+    if ($read_op eq "STDIN") {
+        return "sys.stdin.readline()";
+    }
+    return "$read_op";
+}
+
+sub handle_chomp {
+    my $var = $_[0];
+    return "$var = $var.rstrip()";
+}
+
+sub handle_var {
+    my $var = $_[0];
+    if ($var eq "ARGV") {
+        return "sys.argv[1:]"
+    }
+    return "$var";
+}
+
+sub do_imports {
+    my $line = $_[0];
+    if ($line =~ m{(sys|fileinput|re)\.}) {
+        unless (exists $imports{$1} && $imports{$1} == 1) {
+            $imports{$1} = 1;
+        }
+    }
+}
