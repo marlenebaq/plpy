@@ -149,7 +149,9 @@ sub print_py {
     foreach my $module (keys %imports ){
         push @modules, $module;
     }
-    push (@py_header, (join('', "import ", join(', ', @modules)) . "\n"));
+    if (scalar @modules > 0) {
+        push (@py_header, (join('', "import ", join(', ', @modules)) . "\n"));
+    }
     push my @py_program, (@py_header, @py_code);
     for (@py_program) {
         print "$_";
