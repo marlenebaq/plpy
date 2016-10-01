@@ -100,9 +100,7 @@ var         : VAR_SYMBOL WORD { return handle_var($_[2]); }
 
 assignment  : var '=' expr
                 {
-                    # print "assign\n";
-                    $symtab{$_[1]} = $_[3];
-                    "$_[1] = $_[3]";
+                    return handle_assignment($_[1], $_[3]);
                 }
             | var '=' read_op { return "$_[1] $_[2] $_[3]"; }
             ;
@@ -204,6 +202,23 @@ sub handle_var {
         return "sys.argv[1:]"
     }
     return "$var";
+}
+
+sub handle_assignment {
+    my ($var, $expr) = @_;
+    my @expr_vars = ($expr =~ m{(\w)+}g);
+    if ($expr !~ m{['"']}g) {
+        for (@expr_vars) {
+            my $expr_var = $_;
+            if (exists $symtab{$expr_var}) {
+                my $expr_var_val = $symtab{$expr_var};
+                $expr =~ s{$expr_var}{$expr_var_val}ge;
+            }
+        }
+    }
+
+    $symtab{$var} = $expr;
+    "$var = $expr";
 }
 
 sub do_imports {
