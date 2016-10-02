@@ -36,7 +36,11 @@ program     : line '\n'
 line        : statement
                 {
                     my $s = $_[1];
-                    $s =~ s{\$}{}g;
+                    # TODO: gross hacky
+                    $s =~ s{[\$@]}{}g;
+                    if ($s =~ m{(%\w+)}) {
+                        $s =~ s{%}{};
+                    }
                     # print "$s\n";
                     push @py_code, "$s\n";
                     do_imports($s);
@@ -249,7 +253,7 @@ sub handle_chomp {
 
 sub handle_var {
     my $var = $_[0];
-    if ($var eq "ARGV") {
+    if ($var eq "\@ARGV") {
         return "sys.argv[1:]"
     }
     return "$var";
