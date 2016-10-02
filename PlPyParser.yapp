@@ -36,13 +36,17 @@ program     : line '\n'
 line        : statement
                 {
                     my $s = $_[1];
-                    # print "$s\n";
+                    $s =~ s{\$}{}g;
                     push @py_code, "$s\n";
                     do_imports($s);
                 }
             | COMMENT { push @py_code, "$_[1]\n"; }
             | EMPTY_LINE { push @py_code, "\n"; }
-            | END_OF_FILE { print_py(); exit 0; }
+            | END_OF_FILE
+                {
+                    print_py();
+                    exit 0;
+                }
             | SHEBANG { push @py_header, "#!/usr/local/bin/python3.5 -u\n"; }
             | UNKNOWN_TOK { push @py_code, "# $_[1]\n"; }
             | NO_LINE
@@ -77,7 +81,6 @@ print_st    : PRINT print_arg
             ;
 
 print_arg   : expr
-# { print "expr\n";} # can be a string, which can containvars
             | string_func
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
