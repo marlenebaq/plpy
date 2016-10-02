@@ -15,15 +15,15 @@
 %token WHITESPACE
 %token SEPARATOR
 %token IF
-%token GTE
-%token LTE
 %token CHOMP
 %token JOIN
 %token EXIT
 %token CREMENT
-%left '-' '+'
-%left '*' '/' '%'
-%left '<' '>'
+%token MATCH_OP
+
+%left MATH_OP
+%left BW_BINARY_OP
+%left BW_UNARY_OP
 %left RANGE
 
 %%
@@ -37,7 +37,7 @@ line        : statement
                     my $stmt = $_[1];
                     # TODO: gross hacky
                     $stmt =~ s{[\$@]}{}g;
-                    # print "$stmt\n";
+                    print "$stmt\n";
                     push @py_code, "$stmt\n";
                     $curr_line_num = scalar @py_code;
                     do_imports($stmt);
@@ -58,22 +58,21 @@ no_line     : '}'
             | WHITESPACE no_line
             ;
 
-statement   : print_st
-            | assignment
-            | condition
-            | loop
-            | chomp
-            | string_func
-            | read_op
-            | regex
+statement   : print_st | assignment | condition | loop
+            | chomp | string_func | read_op | regex
+            | OPENF SEPARATOR string
+                    {
+                        return handle_open($_[1], $_[3]);
+                    }
             | EXIT { return "sys.exit"; }
             | LAST { return "break"; }
             | NEXT { return "continue"; }
             | WHITESPACE statement { return join('', $_[1], $_[2]); }
             ;
 
-regex       : var MATCH_OPERATOR MATCH
-            | var MATCH_OPERATOR SUBS { return handle_re($_[1], $_[3]); }
+regex       : var MATCH_OP MATCH { print "blah\n"; return handle_re($_[1],
+$_[3]); }
+            | var MATCH_OP SUBS { return handle_re($_[1], $_[3]); }
             ;
 
 string_func : JOIN '(' string SEPARATOR expr ')'
@@ -137,12 +136,9 @@ condition   : IF '(' truth ')' '{'
             | '}' ELSE '{' { "else:"; }
             ;
 
-expr        : expr '+' expr { "$_[1] + $_[3]" }
-            | expr '-' expr { "$_[1] - $_[3]" }
-            | expr '*' expr { "$_[1] * $_[3]" }
-            | expr '/' expr { "$_[1] / $_[3]" }
-            | expr '%' expr { "$_[1] % $_[3]" }
-            |
+expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
+            | expr BW_BINARY_OP expr { "$_[1] $_[2] $_[3]" }
+            | BW_UNARY_OP expr
             | expr RANGE expr
                 {
                     my $start = $_[1];
@@ -154,14 +150,15 @@ expr        : expr '+' expr { "$_[1] + $_[3]" }
             | NUMBER
             ;
 
-truth       : expr '>' expr { "$_[1] > $_[3]" }
-            | expr '<' expr { "$_[1] < $_[3]" }
-            | expr GTE expr { "$_[1] >= $_[3]" }
-            | expr LTE expr { "$_[1] <= $_[3]" }
-            | expr EQ expr {"$_[1] $_[2] $_[3]" } # can be string or num
-            | expr NE expr { "$_[1] $_[2] $_[3]" }
-            | expr AND expr { "$_[1] and $_[3]" }
-            | expr OR expr { "$_[1] or $_[3]" }
+truth_op    : LOG_OP
+            | COMP_OP
+            ;
+
+truth       : expr truth_op expr
+                {
+                    return handle_truth_op($_[1], $_[2], $_[3]);
+                }
+            | NOT expr { "not $_[2]" }
             | expr
             ;
 
@@ -179,7 +176,7 @@ loop        : LOOP_TYPE '(' truth ')' '{' { "$_[1] $_[3]:" }
                 }
             ;
 
-chomp       : CHOMP #TODO
+chomp       : CHOMP
             | CHOMP var { return handle_chomp($_[2]); }
             ;
 
@@ -357,6 +354,7 @@ sub handle_input_loop {
     return "for $iterator in $iterable:";
 }
 
+# todo: !~
 sub handle_re {
     my ($var, $re) = @_;
     if ($re =~ m{s/(.*)/(.*)/}) {
@@ -367,6 +365,15 @@ sub handle_re {
     # should never be the case, just a fail safe
     return "$var = re.match(r'$re', $var)";
 }
+
+# this assumes read only mode ALWAYS
+sub handle_open {
+    my ($fh, $fname) = @_;
+    # use only fname from "<fname"
+    $fname =~ s{["<]}{}g;
+    return "$fh = open(\"$fname\")";
+}
+
 
 sub handle_conditional {
     my ($type, $truth) = @_;
@@ -383,6 +390,14 @@ sub handle_conditional {
     $truth =~ s{\beq\b}{==};
     $truth =~ s{\bne\b}{!=};
     return ("$type $truth:");
+}
+
+sub handle_truth_op {
+    my ($expr1, $op, $expr2) = @_;
+    $op =~ s{ne}{!=};
+    $op =~ s{eq}{==};
+    $op =~ s{&&}{and};
+    $op =~ s{\|\|}{or};
 }
 
 sub cast_assignment {
