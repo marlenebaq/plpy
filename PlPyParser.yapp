@@ -1,9 +1,12 @@
 %{  my %symtab;
+    my %sym_type_tab;
     my %printab;
     my %imports;
+    my %last_assignment;
     my @print_vars;
     my @py_header;
-    my @py_code; %}
+    my @py_code;
+    my $curr_line_num; %}
 %token NUMBER
 %token SHEBANG
 %token PRINT
@@ -33,18 +36,13 @@ program     : line '\n'
 
 line        : statement
                 {
-                    my $s = $_[1];
+                    my $stmt = $_[1];
                     # TODO: gross hacky
-                    $s =~ s{[\$@]}{}g;
-                    # if ($s =~ m{[^"'](.*)[^"']}) {
-                    #     my $non_str = $1;
-                    #     $non_str =~ s{%}{}g;
-                    #     print "$non_str";
-                    #     $s =~ s{$1}{$non_str}ge;
-                    # }
-                    # print "$s\n";
-                    push @py_code, "$s\n";
-                    do_imports($s);
+                    $stmt =~ s{[\$@]}{}g;
+                    # print "$stmt\n";
+                    push @py_code, "$stmt\n";
+                    $curr_line_num = scalar @py_code;
+                    do_imports($stmt);
                 }
             | COMMENT { push @py_code, "$_[1]\n"; }
             | EMPTY_LINE { push @py_code, "\n"; }
@@ -55,7 +53,11 @@ line        : statement
                 }
             | SHEBANG { push @py_header, "#!/usr/local/bin/python3.5 -u\n"; }
             | UNKNOWN_TOK { push @py_code, "# $_[1]\n"; }
-            | NO_LINE
+            | no_line #no need to push anything
+            ;
+
+no_line     : '}'
+            | WHITESPACE no_line
             ;
 
 statement   : print_st
@@ -88,9 +90,8 @@ string_func : JOIN '(' string SEPARATOR expr ')'
 
 print_st    : PRINT print_arg
                 {
-                    my $print_tok = $_[1];
                     my $args = $_[2];
-                    return handle_print($print_tok, $args);
+                    return handle_print($args);
                 }
             ;
 
@@ -100,8 +101,8 @@ print_arg   : expr
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
-string      : SENTENCE
-            | string SENTENCE
+string      : EMPTY_STRING
+            | SENTENCE
             ;
 
 assignment  : var '=' expr
@@ -125,7 +126,17 @@ input       : INPUT
                 }
             ;
 
-condition   : IF '(' truth ')' '{' { "$_[1] $_[3]:" }
+condition   : IF '(' truth ')' '{'
+                {
+                    return handle_conditional($_[1], $_[3]);
+                    # "if $_[3]:"
+                }
+            | '}' ELSIF '(' truth ')' '{'
+                {
+                    return handle_conditional($_[2], $_[4]);
+                    # "elif $_[4]:"
+                }
+            | '}' ELSE '{' { "else:"; }
             ;
 
 expr        : expr '+' expr { "$_[1] + $_[3]" }
@@ -149,8 +160,8 @@ truth       : expr '>' expr { "$_[1] > $_[3]" }
             | expr '<' expr { "$_[1] < $_[3]" }
             | expr GTE expr { "$_[1] >= $_[3]" }
             | expr LTE expr { "$_[1] <= $_[3]" }
-            | expr EQUAL expr { "$_[1] == $_[3]" }
-            | expr NOT_EQUAL expr { "$_[1] != $_[3]" }
+            | expr EQ expr {"$_[1] $_[2] $_[3]" } # can be string or num
+            | expr NE expr { "$_[1] $_[2] $_[3]" }
             | expr AND expr { "$_[1] and $_[3]" }
             | expr OR expr { "$_[1] or $_[3]" }
             | expr
@@ -184,26 +195,16 @@ var         : VAR { return handle_var($_[1]); }
 %%
 
 use constant {
-    _INT => "\%d",
-    _FLOAT => "\%f",
-    _STRING => "\%s",
+    _INT => "int",
+    _FLOAT => "float",
+    _STRING => "str",
 };
 
 my %syntax_lookup = (
     "<STDIN>" => "sys.stdin.readline()",
     "<>" => "fileinput.input()",
-
     "\@ARGV" => "sys.argv[1:]",
     "\$#ARGV" => "len(sys.argv) - 1", # $#ARGV is the last index, len is the
-    # scalar
-    # "ARGV" => "sys.argv",
-
-    # "elsif" => "elif",
-
-    # "eq" => "==",
-    # "&&" => "and",
-    # "||" => "or",
-    # "!" => "not ",
 );
 
 sub print_py {
@@ -221,8 +222,7 @@ sub print_py {
 }
 
 sub handle_print {
-    my $print_tok = $_[0];
-    my $arg = $_[1];
+    my ($arg) = @_;
     my $has_new_line = 0;
 
     # remove only trailing new lines
@@ -242,8 +242,14 @@ sub handle_print {
         my @components = split(/\s+/, $arg);
         my @vars;
         foreach my $component (@components) {
-            if ($component =~ /\$\w+/) {
-                my $replace = infer_var_type($component);
+            if ($component =~ /(\$\w+)/) {
+                my $replace = "%s";
+                my $type = $sym_type_tab{$1};
+                if ($type eq _INT) {
+                    $replace = "%d";
+                } elsif ($type eq _FLOAT) {
+                    $replace = "%f";
+                }
                 $component =~ s{\$(\w+)}{$replace}g;
                 push @vars, $1;
             }
@@ -262,12 +268,21 @@ sub handle_print {
     if ($has_new_line == 0) {
         $arg .= ", end=\"\"";
     }
-    return "$print_tok($arg)";
+    return "print($arg)";
 }
 
-sub infer_var_type {
+sub infer_type {
     my ($var) = @_;
-    return (exists $symtab{$var} && $symtab{$var} =~ m{^\d+$} ? _INT : _STRING);
+    if (exists $symtab{$var}) {
+        if ($symtab{$var} =~ m{^\d+$}) {
+            return _INT;
+        } elsif ($symtab{$var} =~ m{^\d*\.\d+$}) {
+            return _FLOAT;
+        }
+    } elsif ($var =~ m{^\d+$}) {
+        return _INT;
+    }
+    return _STRING;
 }
 
 sub handle_read_op {
@@ -306,6 +321,8 @@ sub handle_crement {
 sub handle_assignment {
     my ($var, $expr) = @_;
     $symtab{$var} = $expr;
+    $sym_type_tab{$var} = infer_type($var);
+    $last_assignment{$var} = $curr_line_num;
     return "$var = $expr";
 }
 
@@ -328,13 +345,19 @@ sub handle_range {
         }
     }
 
-    "range($start, $end)" ;
+    return "range($start, $end)" ;
 }
 
 sub handle_input_loop {
     my ($assn) = @_;
     my @components = split(/\s+/, $assn);
-    return "for $components[0] in $components[2]:";
+    my $iterator = $components[0];
+    my $iterable = $components[2];
+    if ($iterable =~ m{\Q$syntax_lookup{"<STDIN>"}}) {
+        # since this is already a line by line loop, remove readline()
+        $iterable =~ s{\.readline\(\)}{};
+    }
+    return "for $iterator in $iterable:";
 }
 
 sub handle_re {
@@ -344,6 +367,35 @@ sub handle_re {
     }
     ### TODO: re match
     return "$var = re.match(r'$1', $var)";
+}
+
+sub handle_conditional {
+    my ($type, $truth) = @_;
+    $type =~ s{elsif}{elif};
+    my @truth_exprs = split(/\s(<=|>=|>|<|==|!=|eq|ne|and|or)\s/, $truth);
+    if ($truth_exprs[0] =~ m{^\$\w+}) {
+        if ($sym_type_tab{$truth_exprs[0]} eq _STRING && infer_type($truth_exprs
+            [2]) ne _STRING) {
+            cast_assignment($truth_exprs[0], _FLOAT);
+        }
+    }
+    return ("$type $truth:");
+}
+
+sub cast_assignment {
+    my ($var, $typecast) = @_;
+    my $assn = $py_code[$last_assignment{$var}];
+    my @components = split(/\s=\s/, $assn);
+    my $cast_value = chomp $components[1];
+
+    # update type for this var
+    $sym_type_tab{$var} = $typecast;
+
+    # now add the cast to the existing line and remove the $
+    my $var_str = $var;
+    $var_str =~ s{\$}{};
+    $assn = "$var_str = $typecast($components[1])\n";
+    $py_code[$last_assignment{$var}] = "$assn";
 }
 
 sub do_imports {
