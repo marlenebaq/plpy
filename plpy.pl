@@ -39,11 +39,11 @@ sub lex {
     $$lineData =~ s{^(\s{4})}{} and return ("WHITESPACE", $1);
     $$lineData =~ s{;$}{}; # remove trailing ;
     $$lineData =~ s{^(#.*)}{} and return ("COMMENT", $1); # remove
-    $$lineData =~ s{^\s*(\d+)}{} and return ("NUMBER", $1); # remove
-    $$lineData =~ s{^(\s*print)\s*}{} and return ("PRINT", $1);
+
+    $$lineData =~ s{^\s*(print)\s*}{} and return ("PRINT", $1);
     # print "if now\n";
-    $$lineData =~ s{^(\s*if)\s*}{} and return ("IF", $1);
-    $$lineData =~ s{^(\s*while|foreach|for)\s*}{} and return ("LOOP_TYPE", $1);
+    $$lineData =~ s{^\s*(if)\s*}{} and return ("IF", $1);
+    $$lineData =~ s{^\s*(while|foreach|for)\s*}{} and return ("LOOP_TYPE", $1);
 
     # print "quote now\n";
     # TODO: this matches ".."
@@ -70,7 +70,7 @@ sub lex {
     $$lineData =~ s{^m?/(.*)/}{} and return ("MATCH", $1);
 
     $$lineData =~ s{^\s*([\n=\*\+\-/\(\)><\{%])}{} and return ($1, $1); #
-    # TODO: distinguish this % from above % in clearer ifelse
+    $$lineData =~ s{^\s*(\d+)}{} and return ("NUMBER", $1); # remove
     $$lineData =~ s{^\s*['"]?([\$@%]\w+)}{} and return ("VAR", $1); #
     $$lineData =~ s{^\s*(\[.*\])}{} and return ("INDEX", $1);
 
