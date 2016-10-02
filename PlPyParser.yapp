@@ -1,6 +1,5 @@
-%{  my %symtab;
+%{  my %sym_tab;
     my %sym_type_tab;
-    my %printab;
     my %imports;
     my %last_assignment;
     my @print_vars;
@@ -181,17 +180,15 @@ loop        : LOOP_TYPE '(' truth ')' '{' { "$_[1] $_[3]:" }
             ;
 
 chomp       : CHOMP #TODO
-            | chomp var
-                {
-                    my $var = $_[2];
-                    return handle_chomp($var);
-                }
+            | CHOMP var { return handle_chomp($_[2]); }
             ;
 
 var         : VAR { return handle_var($_[1]); }
             | VAR INDEX
             ;
 %%
+
+# These subroutines are used to translate each line
 
 use constant {
     _INT => "int",
@@ -273,10 +270,10 @@ sub handle_print {
 
 sub infer_type {
     my ($var) = @_;
-    if (exists $symtab{$var}) {
-        if ($symtab{$var} =~ m{^\d+$}) {
+    if (exists $sym_tab{$var}) {
+        if ($sym_tab{$var} =~ m{^\d+$}) {
             return _INT;
-        } elsif ($symtab{$var} =~ m{^\d*\.\d+$}) {
+        } elsif ($sym_tab{$var} =~ m{^\d*\.\d+$}) {
             return _FLOAT;
         }
     } elsif ($var =~ m{^\d+$}) {
@@ -320,7 +317,7 @@ sub handle_crement {
 
 sub handle_assignment {
     my ($var, $expr) = @_;
-    $symtab{$var} = $expr;
+    $sym_tab{$var} = $expr;
     $sym_type_tab{$var} = infer_type($var);
     $last_assignment{$var} = $curr_line_num;
     return "$var = $expr";
@@ -364,19 +361,23 @@ sub handle_re {
     my ($var, $re) = @_;
     if ($re =~ m{s/(.*)/(.*)/}) {
         return "$var = re.sub(r'$1', '$2', $var)";
+    } elsif ($re =~ m{m?/(.*)/}) {
+        return "$var = re.match(r'$1', $var)";
     }
-    ### TODO: re match
-    return "$var = re.match(r'$1', $var)";
+    # should never be the case, just a fail safe
+    return "$var = re.match(r'$re', $var)";
 }
 
 sub handle_conditional {
     my ($type, $truth) = @_;
     $type =~ s{elsif}{elif};
     my @truth_exprs = split(/\s(<=|>=|>|<|==|!=|eq|ne|and|or)\s/, $truth);
-    if ($truth_exprs[0] =~ m{^\$\w+}) {
-        if ($sym_type_tab{$truth_exprs[0]} eq _STRING && infer_type($truth_exprs
+    if ($truth_exprs[0] =~ m{^(\$\w+)}) {
+        # capture only the variable, i.e. only ($var) + 3
+        if ($sym_type_tab{$1} eq _STRING && infer_type
+            ($truth_exprs
             [2]) ne _STRING) {
-            cast_assignment($truth_exprs[0], _FLOAT);
+            cast_assignment($1, _FLOAT);
         }
     }
     $truth =~ s{\beq\b}{==};

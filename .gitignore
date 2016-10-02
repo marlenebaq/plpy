@@ -6,3 +6,4 @@ vgcore.*
 __pycache__
 tmp*
 *.txt
+*.pm
