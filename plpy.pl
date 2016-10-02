@@ -40,7 +40,7 @@ sub lex {
     $$lineData =~ s{;$}{};
 
     # preserve any meaningful WHITESPACE
-    $$lineData =~ s{^(\s{4})}{} and return ("WHITESPACE", $1);
+    $$lineData =~ s{^(\s{4}|\t)}{} and return ("WHITESPACE", $1);
     $$lineData =~ s{^(#.*)}{} and return ("COMMENT", $1);
 
     # 'fundamental' STATEMENTS
@@ -57,18 +57,18 @@ sub lex {
     # OPERATORS & VARIABLES/NUMBERS
     $$lineData =~ s{^\s*([=!]~)}{} and return ("MATCH_OP", $1);
     $$lineData =~ s{^\s*([\+-]){2}}{} and return ("CREMENT", $1);
-    $$lineData =~ s{^\s*(&|\||\^|<<|>>)}{} and return ("BW_BINARY_OP", $1);
-    $$lineData =~ s{^\s*(\~)}{} and return ("BW_UNARY_OP", $1);
     $$lineData =~ s{^\s*(==|eq|!=|ne|>=|<=|>|<|<=>)}{} and return ("COMP_OP",
     $1);
     $$lineData =~ s{^\s*(&&|\|\|)}{} and return ("LOG_OP", $1);
+    $$lineData =~ s{^\s*(&|\||\^|<<|>>)}{} and return ("BW_BINARY_OP", $1);
+    $$lineData =~ s{^\s*(\~)}{} and return ("BW_UNARY_OP", $1);
     $$lineData =~ s{^\s*(\+|\-|\*|/|%|\*\*)}{} and return ("MATH_OP", $1);
     $$lineData =~ s{^\s*!}{} and return ("NOT", undef);
     if ($$lineData !~ m{^\s*<.*>} && $$lineData !~ m{^\s*/.*/}) {
         $$lineData =~ s{^\s*([\n=\(\)\{\}])}{} and return ($1, $1);
     }
 
-    $$lineData =~ s{^\s*(\d+)}{} and return ("NUMBER", $1);
+    $$lineData =~ s{^\s*-?(\d+)}{} and return ("NUMBER", $1);
     $$lineData =~ s{^\s*['"]?([\$@%]#?\w+)}{} and return ("VAR", $1);
     $$lineData =~ s{^\s*(\[.*\])}{} and return ("INDEX", $1);
     $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", undef);
@@ -85,6 +85,7 @@ sub lex {
     $$lineData =~ s{^\s*exit}{} and return ("EXIT", undef); #
     $$lineData =~ s{^\s*open\s*(\w+)}{} and return ("OPENF", $1); #
 
+    $$lineData =~ s{^\.=?}{} and return ("CONCAT", $1); # remove
     $$lineData =~ s{^(,\s*)}{} and return ("SEPARATOR", $1); # remove
 
     print "# \'$$lineData\' (Unknown token)\n" and die;

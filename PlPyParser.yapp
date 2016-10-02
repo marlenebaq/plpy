@@ -67,7 +67,8 @@ statement   : print_st | assignment | condition | loop
             | EXIT { return "sys.exit"; }
             | LAST { return "break"; }
             | NEXT { return "continue"; }
-            | WHITESPACE statement { return join('', $_[1], $_[2]); }
+            | WHITESPACE statement { return join('', $_[1], $_[2]);
+        }
             ;
 
 regex       : var MATCH_OP MATCH { print "blah\n"; return handle_re($_[1],
@@ -154,12 +155,16 @@ truth_op    : LOG_OP
             | COMP_OP
             ;
 
-truth       : expr truth_op expr
+truth       : expr
+            | truth truth_op truth
                 {
                     return handle_truth_op($_[1], $_[2], $_[3]);
                 }
-            | NOT expr { "not $_[2]" }
-            | expr
+            | '(' truth ')'
+                {
+                    return "($_[2])";
+                }
+            | NOT truth { "not $_[2]" }
             ;
 
 loop        : LOOP_TYPE '(' truth ')' '{' { "$_[1] $_[3]:" }
@@ -398,6 +403,7 @@ sub handle_truth_op {
     $op =~ s{eq}{==};
     $op =~ s{&&}{and};
     $op =~ s{\|\|}{or};
+    return "$expr1 $op $expr2";
 }
 
 sub cast_assignment {
