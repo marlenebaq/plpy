@@ -232,16 +232,16 @@ sub handle_var {
 
 sub handle_assignment {
     my ($var, $expr) = @_;
-    my @expr_vars = ($expr =~ m{(\w)+}g);
-    if ($expr !~ m{['"']}g) {
-        for (@expr_vars) {
-            my $expr_var = $_;
-            if (exists $symtab{$expr_var}) {
-                my $expr_var_val = $symtab{$expr_var};
-                $expr =~ s{$expr_var}{$expr_var_val}ge;
-            }
-        }
-    }
+    # my @expr_vars = ($expr =~ m{(\w)+}g);
+    # if ($expr !~ m{['"']}g) {
+    #     for (@expr_vars) {
+    #         my $expr_var = $_;
+    #         if (exists $symtab{$expr_var}) {
+    #             my $expr_var_val = $symtab{$expr_var};
+    #             $expr =~ s{$expr_var}{$expr_var_val}ge;
+    #         }
+    #     }
+    # }
 
     $symtab{$var} = $expr;
     return "$var = $expr";
