@@ -11,8 +11,6 @@
 %token COMMENT
 %token EMPTY_LINE
 %token WHITESPACE
-%token WORD
-%token QUOTE
 %token SEPARATOR
 %token IF
 %token NO_LINE
@@ -38,9 +36,12 @@ line        : statement
                     my $s = $_[1];
                     # TODO: gross hacky
                     $s =~ s{[\$@]}{}g;
-                    if ($s =~ m{(%\w+)}) {
-                        $s =~ s{%}{};
-                    }
+                    # if ($s =~ m{[^"'](.*)[^"']}) {
+                    #     my $non_str = $1;
+                    #     $non_str =~ s{%}{}g;
+                    #     print "$non_str";
+                    #     $s =~ s{$1}{$non_str}ge;
+                    # }
                     # print "$s\n";
                     push @py_code, "$s\n";
                     do_imports($s);
@@ -69,11 +70,19 @@ statement   : print_st
             | WHITESPACE statement { return join('', $_[1], $_[2]); }
             ;
 
-string_func : JOIN '(' string SEPARATOR var ')'
+# regex       : expr MATCH_OPERATOR MATCH
+#             | expr MATCH_OPERATOR SUBS
+#             ;
+# match       : MATCH { print "Match $_[1]\n"; }
+#             ;
+
+string_func : JOIN '(' string SEPARATOR expr ')'
                 {
-                    # print "woo\n";
-                    # print "$_[3].join($_[4])";
                     return "$_[3].join($_[5])";
+                }
+            | SPLIT '(' MATCH SEPARATOR expr ')'
+                {
+                    return "$_[5].split('$_[3]')";
                 }
             ;
 
@@ -87,23 +96,12 @@ print_st    : PRINT print_arg
 
 print_arg   : expr
             | string_func
+            | print_arg SEPARATOR string_func
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
-str_content : SENTENCE
-            | NEW_LINE
-            | var
-            | str_content NEW_LINE { return "$_[1]$_[2]"; }
-            | str_content SENTENCE
-            | str_content var
-            ;
-
-string      : EMPTY_STRING { return "$_[1]"; }
-            | QUOTE str_content QUOTE { return "$_[1]$_[2]$_[3]"}
-            ;
-
-var         : VAR { return handle_var($_[1]); }
-            # | VAR_SYMBOL WORD index { return handle_var($_[2]); }
+string      : SENTENCE
+            | string SENTENCE
             ;
 
 assignment  : var '=' expr
@@ -168,12 +166,16 @@ chomp       : CHOMP #TODO
                     return handle_chomp($var);
                 }
             ;
+
+var         : VAR { return handle_var($_[1]); }
+            | VAR INDEX
+            ;
 %%
 
 use constant {
-    _INT => "%d",
-    _FLOAT => "%f",
-    _STRING => "%s",
+    _INT => "\%d",
+    _FLOAT => "\%f",
+    _STRING => "\%s",
 };
 
 sub print_py {
@@ -194,6 +196,7 @@ sub handle_print {
     my $print_tok = $_[0];
     my $arg = $_[1];
     my $has_new_line = 0;
+    # print "ARG $arg\n";
     # remove only trailing new lines
     # i.e. print "Hello\nWorld"; is passable
     if ($arg =~ m{\\n"\s*$}) {

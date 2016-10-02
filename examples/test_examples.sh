@@ -12,11 +12,15 @@ num_passed=0
 
 execution_test() {
 	test_file=$1
+	# if [ $test_file = "cookie0.pl" ]; then
+	# 	perl $test_file<cookie > pl_out.txt
+	# else
 	perl $test_file > pl_out.txt
+	# fi
 	python3.5 -u tmp.py > py_out.txt
 	diff_=$(diff py_out.txt pl_out.txt)
 	if [ "$diff_" != "" ]; then
-		echo -e "${RED} \xE2\x9C\x98 $test_file${NC}"
+			echo -e "${RED} \xE2\x9C\x98 $test_file${NC}"
 			echo -e " There are differences between your and the sample output, and your code did not pass fallback execution tests."
 			echo " ==> The CODE diff (<yours, >theirs):"
 			diff tmp.py ${test_file[@]%.pl}.py # | colordiff
@@ -45,9 +49,15 @@ test_against() {
 	echo -e "${CYAN}===================${NC}"
 	for test_file in `ls -f *.pl`; do
 		perl ../../plpy.pl $test_file > tmp.py
-		diff_=$(diff tmp.py ${test_file[@]%.pl}.py)
+		diff_=$(diff -B tmp.py ${test_file[@]%.pl}.py)
 		if [ "$diff_" != "" ]; then #  || [ ! -f ${test_file[@]%.pl} ]
-			execution_test $test_file
+			# echo "There was a mismatch between your code and the sample code, so"
+			# echo "execution output is being tested."
+			diff -B tmp.py ${test_file[@]%.pl}.py
+			echo -e "${RED} \xE2\x9C\x98 $test_file${NC}"
+			tests_failed[$num_failed]=$test_file
+			num_failed=$((num_failed + 1))
+			# execution_test $test_file
 		else
 			echo -e "${GREEN} \xE2\x9C\x94 $test_file${NC}"
 			num_passed=$((num_passed + 1))

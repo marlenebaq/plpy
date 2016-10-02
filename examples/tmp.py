@@ -1,10 +1,12 @@
 #!/usr/local/bin/python3.5 -u
 import sys
-# written by andrewt@cse.unsw.edu.au as a COMP2041 lecture example
-# Count the number of lines on standard input.
-
-line = ""
-line_count = 0
-for line in sys.stdin:
-    line_count += 1
-print("%s lines" % line_count)
+print("Enter a number: ", end="")
+a = float(sys.stdin.readline())
+if a < 0:
+    print("negative")
+elif a == 0:
+    print("zero")
+elif a < 10:
+    print("small")
+else:
+    print("large")
