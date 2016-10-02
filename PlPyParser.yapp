@@ -21,7 +21,7 @@
 %token CHOMP
 %token JOIN
 %left '-' '+'
-%left '*' '/'
+%left '*' '/' '%'
 %left '<' '>'
 %left RANGE
 
@@ -114,6 +114,7 @@ expr        : expr '+' expr { "$_[1] + $_[3]" }
             | expr '-' expr { "$_[1] - $_[3]" }
             | expr '*' expr { "$_[1] * $_[3]" }
             | expr '/' expr { "$_[1] / $_[3]" }
+            | expr '%' expr { "$_[1] % $_[3]" }
             | expr RANGE expr
                 {
                     my $start = $_[1];

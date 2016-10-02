@@ -57,8 +57,9 @@ sub lex {
     $$lineData =~ s{^\s*chomp}{} and return ("CHOMP", undef);
     $$lineData =~ s{^\s*<(.*)>}{} and return ("STDIN", $1);
     $$lineData =~ s{^\s*(join\s*)}{} and return ("JOIN", $1);
+    $$lineData =~ s{^\s*([\n=\*\+\-/\(\)><\{%])}{} and return ($1, $1); #
+    # TODO: distinguish this % from above % in clearer ifelse
     $$lineData =~ s{^\s*([\$@%])}{} and return ("VAR_SYMBOL", $1); #
-    $$lineData =~ s{^\s*([\n=\*\+\-/\(\)><\{])}{} and return ($1, $1); #
     # remove
     # operators
     $$lineData =~ s{^\s*(\w+)}{} and return ("WORD", $1);
