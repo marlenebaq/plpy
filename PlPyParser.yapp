@@ -379,22 +379,34 @@ sub handle_conditional {
             cast_assignment($truth_exprs[0], _FLOAT);
         }
     }
+    $truth =~ s{\beq\b}{==};
+    $truth =~ s{\bne\b}{!=};
     return ("$type $truth:");
 }
 
 sub cast_assignment {
     my ($var, $typecast) = @_;
     my $assn = $py_code[$last_assignment{$var}];
+    my $whitespace;
+    if ($assn =~ m{^(\s+)}) {
+        $whitespace = $1;
+    }
     my @components = split(/\s=\s/, $assn);
-    my $cast_value = chomp $components[1];
-
+    chomp $components[1];
+    my $cast_value = $components[1];
+    # only cast the value if it is ambiguous
+    # here we assume that a longer expression means
+    # it contains an operator that makes the type clear -
+    # e.g. + - * / and so on ...
+    unless ($cast_value =~ m{^\S*$}) {
+        return;
+    }
     # update type for this var
     $sym_type_tab{$var} = $typecast;
-
     # now add the cast to the existing line and remove the $
     my $var_str = $var;
     $var_str =~ s{\$}{};
-    $assn = "$var_str = $typecast($components[1])\n";
+    $assn = "$whitespace$var_str = $typecast($components[1])\n";
     $py_code[$last_assignment{$var}] = "$assn";
 }
 
