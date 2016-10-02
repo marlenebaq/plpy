@@ -43,39 +43,41 @@ sub lex {
     $$lineData =~ s{^\s*(print)\s*}{} and return ("PRINT", $1);
     # print "if now\n";
     $$lineData =~ s{^\s*(if)\s*}{} and return ("IF", $1);
+    $$lineData =~ s{^\s*(elsif)\s*}{} and return ("ELSIF", $1);
+    $$lineData =~ s{^\s*(else)\s*}{} and return ("ELSE", $1);
     $$lineData =~ s{^\s*(while|foreach|for)\s*}{} and return ("LOOP_TYPE", $1);
 
     # print "quote now\n";
     # TODO: this matches ".."
     # TODO: refactor -- make sure excl
-    $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", undef); #
-    # $$lineData =~ s{^(\s*['"]['"])}{} and return ("EMPTY_STRING", $1);
-    # $$lineData =~ s{^(\s*['"])}{} and return ("QUOTE", "\"");
-    # $$lineData =~ s{^(\s*\\n)}{} and return ("NEW_LINE", $1);
+    $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", undef);
 
     $$lineData =~ s{^\s*(["'].+?["'])}{} and return ("SENTENCE", $1);
 
+    # OPERATORS & VARIABLES/NUMBERS
     $$lineData =~ s{^\s*(=|!)~}{} and return ("MATCH_OPERATOR", $1);
     $$lineData =~ s{^\s*([\+-]){2}}{} and return ("CREMENT", $1);
     $$lineData =~ s{^\s*(==|eq)}{} and return ("EQUAL", undef);
     $$lineData =~ s{^\s*!=}{} and return ("NOT_EQUAL", undef);
     $$lineData =~ s{^\s*>=}{} and return ("GTE", undef);
     $$lineData =~ s{^\s*<=}{} and return ("LTE", undef);
+    $$lineData =~ s{^\s*&&}{} and return ("AND", undef);
+    $$lineData =~ s{^\s*\|\|}{} and return ("OR", undef);
+    if ($$lineData !~ m{^\s*<.*>}) {
+        $$lineData =~ s{^\s*([\n=\*\+\-/\(\)><\{%])}{} and return ($1, $1);
+    }
 
-    $$lineData =~ s{^\s*chomp}{} and return ("CHOMP", undef);
-    $$lineData =~ s{^\s*<(.*)>}{} and return ("STDIN", $1);
-    $$lineData =~ s{^\s*(join\s*)}{} and return ("JOIN", $1);
-    $$lineData =~ s{^\s*(split\s*)}{} and return ("SPLIT", $1);
-    $$lineData =~ s{^s/(.*/.*)/}{} and return ("SUBS", $1);
-    $$lineData =~ s{^m?/(.*)/}{} and return ("MATCH", $1);
-
-    $$lineData =~ s{^\s*([\n=\*\+\-/\(\)><\{%])}{} and return ($1, $1); #
-    $$lineData =~ s{^\s*(\d+)}{} and return ("NUMBER", $1); # remove
-    $$lineData =~ s{^\s*['"]?([\$@%]\w+)}{} and return ("VAR", $1); #
+    $$lineData =~ s{^\s*(\d+)}{} and return ("NUMBER", $1);
+    $$lineData =~ s{^\s*['"]?([\$@%]#?\w+)}{} and return ("VAR", $1);
     $$lineData =~ s{^\s*(\[.*\])}{} and return ("INDEX", $1);
 
-    # remove
-    # operators
+    $$lineData =~ s{^\s*chomp}{} and return ("CHOMP", undef);
+    $$lineData =~ s{^\s*<(.*)>}{} and return ("INPUT", $1);
+    $$lineData =~ s{^\s*(join\s*)}{} and return ("JOIN", $1);
+    $$lineData =~ s{^\s*(split\s*)}{} and return ("SPLIT", $1);
+
+    $$lineData =~ s{^\s*(s/.*/.*/[a-z]*)}{}i and return ("SUBS", $1);
+    $$lineData =~ s{^\s*(m?/.*/)}{} and return ("MATCH", $1);
     $$lineData =~ s{^\s*last}{} and return ("LAST", undef);
     $$lineData =~ s{^\s*last}{} and return ("NEXT", undef);
     $$lineData =~ s{^\s*exit}{} and return ("EXIT", undef); #
