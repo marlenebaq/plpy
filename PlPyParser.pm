@@ -32,869 +32,869 @@ sub new {
 [
 	{#State 0
 		ACTIONS => {
-			'END_OF_FILE' => 8,
-			'UNKNOWN_TOK' => 10,
-			'EMPTY_LINE' => 9,
-			'LAST' => 11,
-			'EXIT' => 1,
-			'PRINT' => 2,
-			'NEXT' => 7,
-			'COMMENT' => 4,
-			'read_op' => 23,
-			'WHITESPACE' => 24,
-			'JOIN' => 25,
-			'SHEBANG' => 22,
-			'VAR' => 29,
-			'IF' => 17,
-			'SPLIT' => 14,
-			'NO_LINE' => 15,
-			'LOOP_TYPE' => 20,
-			'CHOMP' => 19
+			'PRINT' => 22,
+			'LOOP_TYPE' => 19,
+			'JOIN' => 20,
+			'VAR' => 18,
+			'UNKNOWN_TOK' => 16,
+			'IF' => 27,
+			'NO_LINE' => 26,
+			'SHEBANG' => 24,
+			'EXIT' => 25,
+			'SPLIT' => 8,
+			'read_op' => 7,
+			'LAST' => 5,
+			'CHOMP' => 1,
+			'END_OF_FILE' => 2,
+			'NEXT' => 14,
+			'WHITESPACE' => 13,
+			'COMMENT' => 11,
+			'EMPTY_LINE' => 9
 		},
 		GOTOS => {
-			'condition' => 26,
-			'string_func' => 28,
-			'statement' => 27,
-			'chomp' => 12,
-			'line' => 13,
-			'var' => 16,
+			'condition' => 17,
+			'assignment' => 4,
 			'program' => 3,
-			'regex' => 18,
-			'assignment' => 5,
+			'line' => 6,
 			'print_st' => 21,
-			'loop' => 6
+			'var' => 23,
+			'regex' => 10,
+			'string_func' => 12,
+			'chomp' => 28,
+			'statement' => 15,
+			'loop' => 29
 		}
 	},
 	{#State 1
-		DEFAULT => -18
+		DEFAULT => -60
 	},
 	{#State 2
-		ACTIONS => {
-			'VAR' => 29,
-			'JOIN' => 25,
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'SPLIT' => 14
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'var' => 36,
-			'print_arg' => 31,
-			'expr' => 32,
-			'string_func' => 35,
-			'string' => 34
-		}
+		DEFAULT => -6
 	},
 	{#State 3
 		ACTIONS => {
-			'LOOP_TYPE' => 20,
-			'CHOMP' => 19,
-			'IF' => 17,
-			'NO_LINE' => 15,
-			'SPLIT' => 14,
-			'' => 37,
-			'VAR' => 29,
-			'JOIN' => 25,
-			'WHITESPACE' => 24,
-			'read_op' => 23,
-			'SHEBANG' => 22,
-			'NEXT' => 7,
-			'COMMENT' => 4,
-			'PRINT' => 2,
-			'EXIT' => 1,
-			'LAST' => 11,
-			'UNKNOWN_TOK' => 10,
+			'JOIN' => 20,
+			'LOOP_TYPE' => 19,
+			'PRINT' => 22,
+			'UNKNOWN_TOK' => 16,
+			'VAR' => 18,
+			'EXIT' => 25,
+			'SHEBANG' => 24,
+			'NO_LINE' => 26,
+			'' => 31,
+			'IF' => 27,
+			'LAST' => 5,
+			'read_op' => 7,
+			'SPLIT' => 8,
+			'CHOMP' => 1,
+			'END_OF_FILE' => 2,
+			'WHITESPACE' => 13,
+			'NEXT' => 14,
 			'EMPTY_LINE' => 9,
-			'END_OF_FILE' => 8
+			'COMMENT' => 11
 		},
 		GOTOS => {
-			'var' => 16,
-			'line' => 38,
+			'assignment' => 4,
+			'condition' => 17,
+			'var' => 23,
 			'print_st' => 21,
-			'loop' => 6,
-			'assignment' => 5,
-			'regex' => 18,
-			'condition' => 26,
-			'chomp' => 12,
-			'string_func' => 28,
-			'statement' => 27
+			'line' => 30,
+			'string_func' => 12,
+			'regex' => 10,
+			'loop' => 29,
+			'statement' => 15,
+			'chomp' => 28
 		}
 	},
 	{#State 4
-		DEFAULT => -4
-	},
-	{#State 5
 		DEFAULT => -11
 	},
+	{#State 5
+		DEFAULT => -19
+	},
 	{#State 6
-		DEFAULT => -13
+		ACTIONS => {
+			"\n" => 32
+		}
 	},
 	{#State 7
-		DEFAULT => -20
+		DEFAULT => -16
 	},
 	{#State 8
-		DEFAULT => -6
+		ACTIONS => {
+			"(" => 33
+		}
 	},
 	{#State 9
 		DEFAULT => -5
 	},
 	{#State 10
-		DEFAULT => -8
+		DEFAULT => -17
 	},
 	{#State 11
-		DEFAULT => -19
+		DEFAULT => -4
 	},
 	{#State 12
-		ACTIONS => {
-			'VAR' => 29
-		},
-		DEFAULT => -14,
-		GOTOS => {
-			'var' => 39
-		}
+		DEFAULT => -15
 	},
 	{#State 13
 		ACTIONS => {
-			"\n" => 40
+			'EXIT' => 25,
+			'IF' => 27,
+			'WHITESPACE' => 13,
+			'NEXT' => 14,
+			'VAR' => 18,
+			'CHOMP' => 1,
+			'read_op' => 7,
+			'JOIN' => 20,
+			'LOOP_TYPE' => 19,
+			'LAST' => 5,
+			'PRINT' => 22,
+			'SPLIT' => 8
+		},
+		GOTOS => {
+			'print_st' => 21,
+			'var' => 23,
+			'condition' => 17,
+			'assignment' => 4,
+			'chomp' => 28,
+			'statement' => 34,
+			'loop' => 29,
+			'regex' => 10,
+			'string_func' => 12
 		}
 	},
 	{#State 14
-		ACTIONS => {
-			"(" => 41
-		}
+		DEFAULT => -20
 	},
 	{#State 15
-		DEFAULT => -9
+		DEFAULT => -3
 	},
 	{#State 16
-		ACTIONS => {
-			'CREMENT' => 42,
-			'MATCH_OPERATOR' => 43,
-			"=" => 44
-		}
+		DEFAULT => -8
 	},
 	{#State 17
-		ACTIONS => {
-			"(" => 45
-		}
+		DEFAULT => -12
 	},
 	{#State 18
-		DEFAULT => -17
+		ACTIONS => {
+			'INDEX' => 35
+		},
+		DEFAULT => -62
 	},
 	{#State 19
-		DEFAULT => -60
+		ACTIONS => {
+			'VAR' => 18,
+			"(" => 36
+		},
+		GOTOS => {
+			'var' => 37
+		}
 	},
 	{#State 20
 		ACTIONS => {
-			"(" => 46,
-			'VAR' => 29
-		},
-		GOTOS => {
-			'var' => 47
+			"(" => 38
 		}
 	},
 	{#State 21
 		DEFAULT => -10
 	},
 	{#State 22
-		DEFAULT => -7
-	},
-	{#State 23
-		DEFAULT => -16
-	},
-	{#State 24
 		ACTIONS => {
-			'LOOP_TYPE' => 20,
-			'NEXT' => 7,
-			'CHOMP' => 19,
-			'IF' => 17,
-			'PRINT' => 2,
-			'EXIT' => 1,
-			'SPLIT' => 14,
-			'LAST' => 11,
-			'VAR' => 29,
-			'read_op' => 23,
-			'JOIN' => 25,
-			'WHITESPACE' => 24
+			'SENTENCE' => 42,
+			'VAR' => 18,
+			'NUMBER' => 40,
+			'JOIN' => 20,
+			'SPLIT' => 8
 		},
+		DEFAULT => -43,
 		GOTOS => {
-			'var' => 16,
-			'loop' => 6,
-			'print_st' => 21,
-			'regex' => 18,
-			'assignment' => 5,
-			'condition' => 26,
-			'chomp' => 12,
-			'statement' => 48,
-			'string_func' => 28
+			'string_func' => 41,
+			'expr' => 44,
+			'var' => 45,
+			'string' => 39,
+			'print_arg' => 43
 		}
 	},
+	{#State 23
+		ACTIONS => {
+			'MATCH_OPERATOR' => 47,
+			'CREMENT' => 46,
+			"=" => 48
+		}
+	},
+	{#State 24
+		DEFAULT => -7
+	},
 	{#State 25
+		DEFAULT => -18
+	},
+	{#State 26
+		DEFAULT => -9
+	},
+	{#State 27
 		ACTIONS => {
 			"(" => 49
 		}
 	},
-	{#State 26
-		DEFAULT => -12
-	},
-	{#State 27
-		DEFAULT => -3
-	},
 	{#State 28
-		DEFAULT => -15
+		ACTIONS => {
+			'VAR' => 18
+		},
+		DEFAULT => -14,
+		GOTOS => {
+			'var' => 50
+		}
 	},
 	{#State 29
-		ACTIONS => {
-			'INDEX' => 50
-		},
-		DEFAULT => -62
+		DEFAULT => -13
 	},
 	{#State 30
-		DEFAULT => -31
+		ACTIONS => {
+			"\n" => 51
+		}
 	},
 	{#State 31
-		ACTIONS => {
-			'SEPARATOR' => 51
-		},
-		DEFAULT => -26
+		DEFAULT => 0
 	},
 	{#State 32
-		ACTIONS => {
-			'RANGE' => 53,
-			"-" => 54,
-			"*" => 57,
-			"+" => 56,
-			"/" => 55,
-			"%" => 52
-		},
-		DEFAULT => -27
+		DEFAULT => -1
 	},
 	{#State 33
-		DEFAULT => -47
+		ACTIONS => {
+			'MATCH' => 52
+		}
 	},
 	{#State 34
-		ACTIONS => {
-			'SENTENCE' => 58
-		},
-		DEFAULT => -46
+		DEFAULT => -21
 	},
 	{#State 35
-		DEFAULT => -28
+		DEFAULT => -63
 	},
 	{#State 36
-		DEFAULT => -45
+		ACTIONS => {
+			'VAR' => 18,
+			'NUMBER' => 40,
+			'SENTENCE' => 42
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'assignment' => 53,
+			'string' => 39,
+			'truth' => 56,
+			'expr' => 55,
+			'var' => 54
+		}
 	},
 	{#State 37
-		DEFAULT => 0
+		ACTIONS => {
+			"(" => 57
+		}
 	},
 	{#State 38
 		ACTIONS => {
-			"\n" => 59
+			'SENTENCE' => 42
+		},
+		GOTOS => {
+			'string' => 58
 		}
 	},
 	{#State 39
-		DEFAULT => -61
+		ACTIONS => {
+			'SENTENCE' => 59
+		},
+		DEFAULT => -46
 	},
 	{#State 40
-		DEFAULT => -1
+		DEFAULT => -47
 	},
 	{#State 41
-		ACTIONS => {
-			'MATCH' => 60
-		}
+		DEFAULT => -28
 	},
 	{#State 42
-		DEFAULT => -35
+		DEFAULT => -31
 	},
 	{#State 43
 		ACTIONS => {
-			'SUBS' => 61,
-			'MATCH' => 62
-		}
+			'SEPARATOR' => 60
+		},
+		DEFAULT => -26
 	},
 	{#State 44
 		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29,
-			'INPUT' => 63
+			"*" => 64,
+			"+" => 63,
+			"-" => 61,
+			"/" => 62,
+			"%" => 66,
+			'RANGE' => 65
 		},
-		DEFAULT => -43,
-		GOTOS => {
-			'string' => 34,
-			'var' => 36,
-			'expr' => 65,
-			'input' => 64
-		}
+		DEFAULT => -27
 	},
 	{#State 45
-		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'var' => 36,
-			'expr' => 67,
-			'truth' => 66,
-			'string' => 34
-		}
+		DEFAULT => -45
 	},
 	{#State 46
-		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'expr' => 67,
-			'var' => 68,
-			'assignment' => 69,
-			'string' => 34,
-			'truth' => 70
-		}
+		DEFAULT => -35
 	},
 	{#State 47
 		ACTIONS => {
-			"(" => 71
+			'MATCH' => 67,
+			'SUBS' => 68
 		}
 	},
 	{#State 48
-		DEFAULT => -21
+		ACTIONS => {
+			'VAR' => 18,
+			'INPUT' => 71,
+			'NUMBER' => 40,
+			'SENTENCE' => 42
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'var' => 45,
+			'input' => 70,
+			'expr' => 69,
+			'string' => 39
+		}
 	},
 	{#State 49
 		ACTIONS => {
-			'SENTENCE' => 30
+			'NUMBER' => 40,
+			'SENTENCE' => 42,
+			'VAR' => 18
 		},
+		DEFAULT => -43,
 		GOTOS => {
-			'string' => 72
+			'string' => 39,
+			'truth' => 72,
+			'expr' => 55,
+			'var' => 45
 		}
 	},
 	{#State 50
-		DEFAULT => -63
+		DEFAULT => -61
 	},
 	{#State 51
-		ACTIONS => {
-			'VAR' => 29,
-			'JOIN' => 25,
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'SPLIT' => 14
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'string_func' => 73,
-			'string' => 34,
-			'expr' => 74,
-			'var' => 36
-		}
+		DEFAULT => -2
 	},
 	{#State 52
 		ACTIONS => {
-			'VAR' => 29,
-			'NUMBER' => 33,
-			'SENTENCE' => 30
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'expr' => 75,
-			'var' => 36,
-			'string' => 34
+			'SEPARATOR' => 73
 		}
 	},
 	{#State 53
 		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'var' => 36,
-			'expr' => 76,
-			'string' => 34
+			")" => 74
 		}
 	},
 	{#State 54
 		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
+			'CREMENT' => 46,
+			"=" => 48
 		},
-		DEFAULT => -43,
-		GOTOS => {
-			'string' => 34,
-			'var' => 36,
-			'expr' => 77
-		}
+		DEFAULT => -45
 	},
 	{#State 55
 		ACTIONS => {
-			'SENTENCE' => 30,
-			'NUMBER' => 33,
-			'VAR' => 29
+			'NOT_EQUAL' => 75,
+			">" => 76,
+			"/" => 62,
+			"-" => 61,
+			'EQUAL' => 82,
+			"*" => 64,
+			"+" => 63,
+			'AND' => 77,
+			'LTE' => 80,
+			"%" => 66,
+			'RANGE' => 65,
+			"<" => 78,
+			'OR' => 79,
+			'GTE' => 81
 		},
-		DEFAULT => -43,
-		GOTOS => {
-			'string' => 34,
-			'var' => 36,
-			'expr' => 78
-		}
+		DEFAULT => -56
 	},
 	{#State 56
 		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'expr' => 79,
-			'var' => 36,
-			'string' => 34
+			")" => 83
 		}
 	},
 	{#State 57
 		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
+			'SENTENCE' => 42,
+			'VAR' => 18,
+			'NUMBER' => 40
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'var' => 36,
-			'expr' => 80,
-			'string' => 34
+			'string' => 39,
+			'expr' => 84,
+			'var' => 45
 		}
 	},
 	{#State 58
-		DEFAULT => -32
+		ACTIONS => {
+			'SENTENCE' => 59,
+			'SEPARATOR' => 85
+		}
 	},
 	{#State 59
-		DEFAULT => -2
+		DEFAULT => -32
 	},
 	{#State 60
 		ACTIONS => {
-			'SEPARATOR' => 81
+			'SENTENCE' => 42,
+			'JOIN' => 20,
+			'NUMBER' => 40,
+			'SPLIT' => 8,
+			'VAR' => 18
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'string_func' => 87,
+			'string' => 39,
+			'expr' => 86,
+			'var' => 45
 		}
 	},
 	{#State 61
-		DEFAULT => -23
+		ACTIONS => {
+			'VAR' => 18,
+			'SENTENCE' => 42,
+			'NUMBER' => 40
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'string' => 39,
+			'expr' => 88,
+			'var' => 45
+		}
 	},
 	{#State 62
-		DEFAULT => -22
+		ACTIONS => {
+			'VAR' => 18,
+			'NUMBER' => 40,
+			'SENTENCE' => 42
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'var' => 45,
+			'expr' => 89,
+			'string' => 39
+		}
 	},
 	{#State 63
-		DEFAULT => -36
+		ACTIONS => {
+			'SENTENCE' => 42,
+			'NUMBER' => 40,
+			'VAR' => 18
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'string' => 39,
+			'var' => 45,
+			'expr' => 90
+		}
 	},
 	{#State 64
-		DEFAULT => -34
+		ACTIONS => {
+			'SENTENCE' => 42,
+			'NUMBER' => 40,
+			'VAR' => 18
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'string' => 39,
+			'var' => 45,
+			'expr' => 91
+		}
 	},
 	{#State 65
 		ACTIONS => {
-			'RANGE' => 53,
-			"-" => 54,
-			"/" => 55,
-			"+" => 56,
-			"*" => 57,
-			"%" => 52
+			'SENTENCE' => 42,
+			'NUMBER' => 40,
+			'VAR' => 18
 		},
-		DEFAULT => -33
+		DEFAULT => -43,
+		GOTOS => {
+			'var' => 45,
+			'expr' => 92,
+			'string' => 39
+		}
 	},
 	{#State 66
 		ACTIONS => {
-			")" => 82
+			'VAR' => 18,
+			'SENTENCE' => 42,
+			'NUMBER' => 40
+		},
+		DEFAULT => -43,
+		GOTOS => {
+			'var' => 45,
+			'expr' => 93,
+			'string' => 39
 		}
 	},
 	{#State 67
-		ACTIONS => {
-			'EQUAL' => 88,
-			'OR' => 87,
-			"%" => 52,
-			">" => 90,
-			'RANGE' => 53,
-			'AND' => 89,
-			"-" => 54,
-			"+" => 56,
-			"/" => 55,
-			'LTE' => 83,
-			'GTE' => 85,
-			'NOT_EQUAL' => 86,
-			"*" => 57,
-			"<" => 84
-		},
-		DEFAULT => -56
+		DEFAULT => -22
 	},
 	{#State 68
-		ACTIONS => {
-			'CREMENT' => 42,
-			"=" => 44
-		},
-		DEFAULT => -45
+		DEFAULT => -23
 	},
 	{#State 69
 		ACTIONS => {
-			")" => 91
-		}
+			"*" => 64,
+			"+" => 63,
+			'RANGE' => 65,
+			"%" => 66,
+			"/" => 62,
+			"-" => 61
+		},
+		DEFAULT => -33
 	},
 	{#State 70
-		ACTIONS => {
-			")" => 92
-		}
+		DEFAULT => -34
 	},
 	{#State 71
-		ACTIONS => {
-			'VAR' => 29,
-			'NUMBER' => 33,
-			'SENTENCE' => 30
-		},
-		DEFAULT => -43,
-		GOTOS => {
-			'expr' => 93,
-			'var' => 36,
-			'string' => 34
-		}
+		DEFAULT => -36
 	},
 	{#State 72
 		ACTIONS => {
-			'SEPARATOR' => 94,
-			'SENTENCE' => 58
+			")" => 94
 		}
 	},
 	{#State 73
-		DEFAULT => -29
-	},
-	{#State 74
 		ACTIONS => {
-			"-" => 54,
-			'RANGE' => 53,
-			"/" => 55,
-			"*" => 57,
-			"+" => 56,
-			"%" => 52
-		},
-		DEFAULT => -30
-	},
-	{#State 75
-		ACTIONS => {
-			'RANGE' => 53
-		},
-		DEFAULT => -42
-	},
-	{#State 76
-		DEFAULT => -44
-	},
-	{#State 77
-		ACTIONS => {
-			"*" => 57,
-			"%" => 52,
-			"/" => 55,
-			'RANGE' => 53
-		},
-		DEFAULT => -39
-	},
-	{#State 78
-		ACTIONS => {
-			'RANGE' => 53
-		},
-		DEFAULT => -41
-	},
-	{#State 79
-		ACTIONS => {
-			'RANGE' => 53,
-			"/" => 55,
-			"%" => 52,
-			"*" => 57
-		},
-		DEFAULT => -38
-	},
-	{#State 80
-		ACTIONS => {
-			'RANGE' => 53
-		},
-		DEFAULT => -40
-	},
-	{#State 81
-		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
+			'SENTENCE' => 42,
+			'NUMBER' => 40,
+			'VAR' => 18
 		},
 		DEFAULT => -43,
 		GOTOS => {
+			'var' => 45,
 			'expr' => 95,
-			'var' => 36,
-			'string' => 34
+			'string' => 39
 		}
 	},
-	{#State 82
+	{#State 74
 		ACTIONS => {
 			"{" => 96
 		}
 	},
-	{#State 83
+	{#State 75
 		ACTIONS => {
-			'SENTENCE' => 30,
-			'NUMBER' => 33,
-			'VAR' => 29
+			'SENTENCE' => 42,
+			'NUMBER' => 40,
+			'VAR' => 18
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'string' => 34,
-			'expr' => 97,
-			'var' => 36
+			'string' => 39,
+			'var' => 45,
+			'expr' => 97
 		}
 	},
-	{#State 84
+	{#State 76
 		ACTIONS => {
-			'SENTENCE' => 30,
-			'NUMBER' => 33,
-			'VAR' => 29
+			'NUMBER' => 40,
+			'VAR' => 18,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'expr' => 98,
-			'var' => 36,
-			'string' => 34
+			'string' => 39,
+			'var' => 45,
+			'expr' => 98
 		}
 	},
-	{#State 85
+	{#State 77
 		ACTIONS => {
-			'SENTENCE' => 30,
-			'NUMBER' => 33,
-			'VAR' => 29
+			'VAR' => 18,
+			'NUMBER' => 40,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
 			'expr' => 99,
-			'var' => 36,
-			'string' => 34
+			'var' => 45,
+			'string' => 39
 		}
 	},
-	{#State 86
+	{#State 78
 		ACTIONS => {
-			'VAR' => 29,
-			'NUMBER' => 33,
-			'SENTENCE' => 30
+			'VAR' => 18,
+			'NUMBER' => 40,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'string' => 34,
-			'var' => 36,
-			'expr' => 100
+			'var' => 45,
+			'expr' => 100,
+			'string' => 39
 		}
 	},
-	{#State 87
+	{#State 79
 		ACTIONS => {
-			'NUMBER' => 33,
-			'SENTENCE' => 30,
-			'VAR' => 29
+			'SENTENCE' => 42,
+			'NUMBER' => 40,
+			'VAR' => 18
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'string' => 34,
-			'var' => 36,
-			'expr' => 101
+			'string' => 39,
+			'expr' => 101,
+			'var' => 45
 		}
 	},
-	{#State 88
+	{#State 80
 		ACTIONS => {
-			'VAR' => 29,
-			'SENTENCE' => 30,
-			'NUMBER' => 33
+			'VAR' => 18,
+			'NUMBER' => 40,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'string' => 34,
-			'var' => 36,
+			'string' => 39,
+			'var' => 45,
 			'expr' => 102
 		}
 	},
-	{#State 89
+	{#State 81
 		ACTIONS => {
-			'SENTENCE' => 30,
-			'NUMBER' => 33,
-			'VAR' => 29
+			'NUMBER' => 40,
+			'VAR' => 18,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
+			'string' => 39,
 			'expr' => 103,
-			'var' => 36,
-			'string' => 34
+			'var' => 45
 		}
 	},
-	{#State 90
+	{#State 82
 		ACTIONS => {
-			'SENTENCE' => 30,
-			'NUMBER' => 33,
-			'VAR' => 29
+			'NUMBER' => 40,
+			'VAR' => 18,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
+			'string' => 39,
 			'expr' => 104,
-			'var' => 36,
-			'string' => 34
+			'var' => 45
 		}
 	},
-	{#State 91
+	{#State 83
 		ACTIONS => {
 			"{" => 105
 		}
 	},
-	{#State 92
+	{#State 84
 		ACTIONS => {
-			"{" => 106
+			"+" => 63,
+			"/" => 62,
+			"-" => 61,
+			'RANGE' => 65,
+			"%" => 66,
+			")" => 106,
+			"*" => 64
 		}
 	},
-	{#State 93
+	{#State 85
 		ACTIONS => {
-			'RANGE' => 53,
-			"-" => 54,
-			"*" => 57,
-			"+" => 56,
-			"/" => 55,
-			")" => 107,
-			"%" => 52
-		}
-	},
-	{#State 94
-		ACTIONS => {
-			'VAR' => 29,
-			'NUMBER' => 33,
-			'SENTENCE' => 30
+			'NUMBER' => 40,
+			'VAR' => 18,
+			'SENTENCE' => 42
 		},
 		DEFAULT => -43,
 		GOTOS => {
-			'string' => 34,
-			'expr' => 108,
-			'var' => 36
+			'string' => 39,
+			'expr' => 107,
+			'var' => 45
+		}
+	},
+	{#State 86
+		ACTIONS => {
+			"*" => 64,
+			"+" => 63,
+			"/" => 62,
+			"-" => 61,
+			"%" => 66,
+			'RANGE' => 65
+		},
+		DEFAULT => -30
+	},
+	{#State 87
+		DEFAULT => -29
+	},
+	{#State 88
+		ACTIONS => {
+			"/" => 62,
+			"*" => 64,
+			"%" => 66,
+			'RANGE' => 65
+		},
+		DEFAULT => -39
+	},
+	{#State 89
+		ACTIONS => {
+			'RANGE' => 65
+		},
+		DEFAULT => -41
+	},
+	{#State 90
+		ACTIONS => {
+			'RANGE' => 65,
+			"%" => 66,
+			"*" => 64,
+			"/" => 62
+		},
+		DEFAULT => -38
+	},
+	{#State 91
+		ACTIONS => {
+			'RANGE' => 65
+		},
+		DEFAULT => -40
+	},
+	{#State 92
+		DEFAULT => -44
+	},
+	{#State 93
+		ACTIONS => {
+			'RANGE' => 65
+		},
+		DEFAULT => -42
+	},
+	{#State 94
+		ACTIONS => {
+			"{" => 108
 		}
 	},
 	{#State 95
 		ACTIONS => {
-			"-" => 54,
-			'RANGE' => 53,
-			"%" => 52,
 			")" => 109,
-			"/" => 55,
-			"*" => 57,
-			"+" => 56
+			"*" => 64,
+			"+" => 63,
+			"/" => 62,
+			"-" => 61,
+			"%" => 66,
+			'RANGE' => 65
 		}
 	},
 	{#State 96
-		DEFAULT => -37
+		DEFAULT => -59
 	},
 	{#State 97
 		ACTIONS => {
-			"%" => 52,
-			"*" => 57,
-			"+" => 56,
-			"/" => 55,
-			'RANGE' => 53,
-			"-" => 54
-		},
-		DEFAULT => -51
-	},
-	{#State 98
-		ACTIONS => {
-			"%" => 52,
-			'RANGE' => 53,
-			"-" => 54,
-			"/" => 55,
-			"+" => 56,
-			"*" => 57
-		},
-		DEFAULT => -49
-	},
-	{#State 99
-		ACTIONS => {
-			"/" => 55,
-			"*" => 57,
-			"+" => 56,
-			'RANGE' => 53,
-			"-" => 54,
-			"%" => 52
-		},
-		DEFAULT => -50
-	},
-	{#State 100
-		ACTIONS => {
-			"/" => 55,
-			"+" => 56,
-			"*" => 57,
-			'RANGE' => 53,
-			"-" => 54,
-			"%" => 52
+			"*" => 64,
+			"+" => 63,
+			"/" => 62,
+			"-" => 61,
+			'RANGE' => 65,
+			"%" => 66
 		},
 		DEFAULT => -53
 	},
+	{#State 98
+		ACTIONS => {
+			"%" => 66,
+			'RANGE' => 65,
+			"-" => 61,
+			"/" => 62,
+			"*" => 64,
+			"+" => 63
+		},
+		DEFAULT => -48
+	},
+	{#State 99
+		ACTIONS => {
+			"+" => 63,
+			"*" => 64,
+			"/" => 62,
+			"-" => 61,
+			"%" => 66,
+			'RANGE' => 65
+		},
+		DEFAULT => -54
+	},
+	{#State 100
+		ACTIONS => {
+			"%" => 66,
+			'RANGE' => 65,
+			"/" => 62,
+			"-" => 61,
+			"+" => 63,
+			"*" => 64
+		},
+		DEFAULT => -49
+	},
 	{#State 101
 		ACTIONS => {
-			"+" => 56,
-			"*" => 57,
-			"/" => 55,
-			'RANGE' => 53,
-			"-" => 54,
-			"%" => 52
+			"*" => 64,
+			"+" => 63,
+			'RANGE' => 65,
+			"%" => 66,
+			"/" => 62,
+			"-" => 61
 		},
 		DEFAULT => -55
 	},
 	{#State 102
 		ACTIONS => {
-			"%" => 52,
-			"/" => 55,
-			"+" => 56,
-			"*" => 57,
-			"-" => 54,
-			'RANGE' => 53
+			"+" => 63,
+			"*" => 64,
+			"%" => 66,
+			'RANGE' => 65,
+			"-" => 61,
+			"/" => 62
 		},
-		DEFAULT => -52
+		DEFAULT => -51
 	},
 	{#State 103
 		ACTIONS => {
-			"-" => 54,
-			'RANGE' => 53,
-			"/" => 55,
-			"*" => 57,
-			"+" => 56,
-			"%" => 52
+			"+" => 63,
+			"*" => 64,
+			'RANGE' => 65,
+			"%" => 66,
+			"/" => 62,
+			"-" => 61
 		},
-		DEFAULT => -54
+		DEFAULT => -50
 	},
 	{#State 104
 		ACTIONS => {
-			"%" => 52,
-			"*" => 57,
-			"+" => 56,
-			"/" => 55,
-			'RANGE' => 53,
-			"-" => 54
+			"-" => 61,
+			"/" => 62,
+			'RANGE' => 65,
+			"%" => 66,
+			"*" => 64,
+			"+" => 63
 		},
-		DEFAULT => -48
+		DEFAULT => -52
 	},
 	{#State 105
-		DEFAULT => -59
-	},
-	{#State 106
 		DEFAULT => -57
 	},
-	{#State 107
+	{#State 106
 		ACTIONS => {
 			"{" => 110
 		}
 	},
-	{#State 108
+	{#State 107
 		ACTIONS => {
-			"%" => 52,
 			")" => 111,
-			"/" => 55,
-			"+" => 56,
-			"*" => 57,
-			"-" => 54,
-			'RANGE' => 53
+			"*" => 64,
+			'RANGE' => 65,
+			"%" => 66,
+			"-" => 61,
+			"/" => 62,
+			"+" => 63
 		}
+	},
+	{#State 108
+		DEFAULT => -37
 	},
 	{#State 109
 		DEFAULT => -25
@@ -1361,8 +1361,8 @@ sub infer_var_type {
 
 sub handle_read_op {
     my $read_op = $_[0];
-    for my $pl_syntax (keys %syntax_lookup) {
-        return $syntax_lookup{"<$pl_syntax>"} if $read_op eq "<$pl_syntax>";
+    if (exists $syntax_lookup{"<$read_op>"}) {
+        return $syntax_lookup{"<$read_op>"};
     }
     return "$read_op";
 }
@@ -1407,7 +1407,7 @@ sub handle_range {
         if ($end =~ m{(-+)?\s*\b(\d+)\b}) {
             my $operator = $1;
             my $num = $2;
-            if ($operator eq "-") {
+            if ($operator && $operator eq "-") {
                 $end =~ s{$num}{$num-1}e;
             } else {
                 $end =~ s{$num}{$num+1}e;

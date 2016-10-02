@@ -272,8 +272,8 @@ sub infer_var_type {
 
 sub handle_read_op {
     my $read_op = $_[0];
-    for my $pl_syntax (keys %syntax_lookup) {
-        return $syntax_lookup{"<$pl_syntax>"} if $read_op eq "<$pl_syntax>";
+    if (exists $syntax_lookup{"<$read_op>"}) {
+        return $syntax_lookup{"<$read_op>"};
     }
     return "$read_op";
 }
@@ -318,7 +318,7 @@ sub handle_range {
         if ($end =~ m{(-+)?\s*\b(\d+)\b}) {
             my $operator = $1;
             my $num = $2;
-            if ($operator eq "-") {
+            if ($operator && $operator eq "-") {
                 $end =~ s{$num}{$num-1}e;
             } else {
                 $end =~ s{$num}{$num+1}e;
