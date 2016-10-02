@@ -82,8 +82,7 @@ string      : EMPTY_STRING { return "$_[1]"; }
             ;
 
 sentence    : WORD
-# TODO: check type
-            | var
+            | var  { return "\$$_[1]"; }
             | NEW_LINE
             | sentence WORD { return "$_[1] $_[2]";}
             | sentence var
@@ -188,9 +187,8 @@ sub handle_print {
         my @components = split(/\s+/, $arg);
         my @vars;
         foreach my $component (@components) {
-            if ($component =~ /\$(\w+)/) {
-                my $format = ((exists $symtab{$1} && $symtab{$1} =~ m{\d+}) ? "%d" : "%s");
-                $component =~ s{(\w+)}{$format}e;
+            if ($component =~ /\$\w+/) {
+                $component =~ s{(\w+)}{%s};
                 push @vars, $1;
             }
         }
