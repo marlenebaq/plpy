@@ -23,6 +23,7 @@
 %left '-' '+'
 %left '*' '/'
 %left '<' '>'
+%left RANGE
 
 %%
 
@@ -83,11 +84,6 @@ string      : EMPTY_STRING { return "$_[1]"; }
 sentence    : WORD
 # TODO: check type
             | var
-                {
-                    my $var = $_[1];
-                    push @print_vars, $var;
-                    return $symtab{$var} =~ m{\d+} ? "%d" : "%s";
-                }
             | NEW_LINE
             | sentence WORD { return "$_[1] $_[2]";}
             | sentence var
@@ -119,6 +115,7 @@ expr        : expr '+' expr { "$_[1] + $_[3]" }
             | expr '-' expr { "$_[1] - $_[3]" }
             | expr '*' expr { "$_[1] * $_[3]" }
             | expr '/' expr { "$_[1] / $_[3]" }
+            | expr RANGE expr { "range($_[1], ($_[3]-1)" }
             | var
             | string
             | NUMBER
@@ -134,6 +131,14 @@ truth       : expr '>' expr { "$_[1] > $_[3]" }
             ;
 
 loop        : LOOP_TYPE '(' truth ')' '{' { "$_[1] $_[3]:" }
+            | LOOP_TYPE var '(' expr ')' '{'
+                {
+                    my $iterator = $_[1];
+                    my $iterable = $_[3];
+                    my $implicit_assignment = handle_assignment($iterator,
+                        $iterable );
+                    "$_[1] $_[3]:"
+                }
             ;
 
 chomp       : CHOMP #TODO
@@ -163,21 +168,41 @@ sub handle_print {
     my $print_tok = $_[0];
     my $arg = $_[1];
     # print "----$print_tok $arg\n";
-    my $has_newline = 0;
-    if ($arg =~ m{\\n["']$}) {
-        $has_newline = 1;
-    } else {
-        $has_newline = 0;
-    }
-    if (scalar @print_vars > 0) {
-        my @str_format = join(', ', @print_vars);
-        $arg .= " % (@str_format)";
+    my $has_new_line = 0;
+    # remove only trailing new lines
+    # i.e. print "Hello\nWorld"; is passable
+    if ($arg =~ m{\\n"\s*$}) {
+        $has_new_line = 1;
+        $arg =~ s{,\s*"\\n"\s*$}{}g; # remove , "\n"
+        $arg =~ s{\\n\s*"\s*$}{"}g; # remove  \n in \n"
     }
 
-    if ($has_newline == 1) {
-        $arg =~ s{,\s*"\\n"$}{};
-        $arg =~ s{\\n}{};
+    # vars that don't need type inference
+    if ($arg =~ /^([^"]*)$/ || $arg =~ /^"?\$([^\s\"]*)"?$/) {
+        $arg = $1;
+        $arg =~ s{\$}{}g;
     } else {
+        my @components = split(/\s+/, $arg);
+        my @vars;
+        foreach my $component (@components) {
+            if ($component =~ /\$(\w+)/) {
+                my $format = ((exists $symtab{$1} && $symtab{$1} =~ m{\d+}) ? "%d" : "%s");
+                $component =~ s{(\w+)}{$format}e;
+                push @vars, $1;
+            }
+        }
+        $arg = join(' ', @components);
+        if (@vars) {
+            my @str_format = join(', ', @vars);
+            if (scalar @vars > 1) {
+                $arg .= " % (@str_format)";
+            } else {
+                $arg .= " % @str_format";
+            }
+        }
+    }
+
+    if ($has_new_line == 0) {
         $arg .= ", end=\"\"";
     }
     return "$print_tok($arg)";
@@ -218,7 +243,7 @@ sub handle_assignment {
     }
 
     $symtab{$var} = $expr;
-    "$var = $expr";
+    return "$var = $expr";
 }
 
 sub do_imports {

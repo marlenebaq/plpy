@@ -38,9 +38,12 @@ sub lex {
     $$lineData =~ s{^(\s*print)\s*}{} and return ("PRINT", $1);
     # print "if now\n";
     $$lineData =~ s{^(\s*if)\s*}{} and return ("IF", $1);
-    $$lineData =~ s{^(\s*while|for|foreach)\s*}{} and return ("LOOP_TYPE", $1);
+    $$lineData =~ s{^(\s*while|foreach|for)\s*}{} and return 
+    ("LOOP_TYPE", $1);
 
     # print "quote now\n";
+    # TODO: this matches ".."
+    $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", undef); #
     $$lineData =~ s{^(\s*['"]\s*['"'])}{} and return ("EMPTY_STRING", $1);
     $$lineData =~ s{^(\s*['"])}{} and return ("QUOTE", $1);
     $$lineData =~ s{^(\s*\\n)}{} and return ("NEW_LINE", $1);
