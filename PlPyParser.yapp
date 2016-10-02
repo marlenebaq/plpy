@@ -20,6 +20,8 @@
 %token LTE
 %token CHOMP
 %token JOIN
+%token EXIT
+%token CREMENT
 %left '-' '+'
 %left '*' '/' '%'
 %left '<' '>'
@@ -42,6 +44,7 @@ line        : statement
             | EMPTY_LINE { push @py_code, "\n"; }
             | END_OF_FILE { print_py(); exit 0; }
             | SHEBANG { push @py_header, "#!/usr/local/bin/python3.5 -u\n"; }
+            | UNKNOWN_TOK { push @py_code, "# $_[1]\n"; }
             | NO_LINE
             ;
 
@@ -51,6 +54,7 @@ statement   : print_st
             | loop
             | chomp
             | string_func
+            | EXIT { return "sys.exit"; }
             | LAST { return "break"; }
             | NEXT { return "continue"; }
             | WHITESPACE statement { return join('', $_[1], $_[2]); }
@@ -73,29 +77,34 @@ print_st    : PRINT print_arg
             ;
 
 print_arg   : expr
+# { print "expr\n";} # can be a string, which can containvars
             | string_func
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
 string      : EMPTY_STRING { return "$_[1]"; }
-            | QUOTE sentence QUOTE { return "$_[1]$_[2]$_[3]" }
+            | QUOTE STRING QUOTE { return "$_[1]$_[2]$_[3]"}
             ;
 
-sentence    : WORD
-            | var  { return "\$$_[1]"; }
-            | NEW_LINE
-            | sentence WORD { return "$_[1] $_[2]";}
-            | sentence var
-            | sentence NEW_LINE { return "$_[1]\\n"; }
-            ;
+# sentence    : WORD
+#             | var
+#             | NEW_LINE
+#             | sentence WORD { return "$_[1] $_[2]";}
+#             | sentence var
+#             | sentence NEW_LINE { return "$_[1]\\n"; }
+#             ;
 
-var         : VAR_SYMBOL WORD { return handle_var($_[2]); }
+var         : VAR { return handle_var($_[1]); }
             # | VAR_SYMBOL WORD index { return handle_var($_[2]); }
             ;
 
 assignment  : var '=' expr
                 {
                     return handle_assignment($_[1], $_[3]);
+                }
+            | var CREMENT
+                {
+                    return handle_crement($_[1], $_[2]);
                 }
             | var '=' read_op { return "$_[1] $_[2] $_[3]"; }
             ;
@@ -153,6 +162,12 @@ chomp       : CHOMP #TODO
             ;
 %%
 
+use constant {
+    _INT => "%d",
+    _FLOAT => "%f",
+    _STRING => "%s",
+};
+
 sub print_py {
     my @modules;
     foreach my $module (keys %imports ){
@@ -189,7 +204,8 @@ sub handle_print {
         my @vars;
         foreach my $component (@components) {
             if ($component =~ /\$\w+/) {
-                $component =~ s{(\w+)}{%s};
+                my $replace = infer_var_type($component);
+                $component =~ s{\$(\w+)}{$replace}g;
                 push @vars, $1;
             }
         }
@@ -208,6 +224,11 @@ sub handle_print {
         $arg .= ", end=\"\"";
     }
     return "$print_tok($arg)";
+}
+
+sub infer_var_type {
+    my ($var) = @_;
+    return (exists $symtab{$var} && $symtab{$var} =~ m{^\d+$} ? _INT : _STRING);
 }
 
 sub handle_read_op {
@@ -231,19 +252,17 @@ sub handle_var {
     return "$var";
 }
 
+sub handle_crement {
+    my ($var, $crement) = @_;
+    my $expr = "$var - 1";
+    if ($crement eq "+") {
+        $expr = "$var + 1";
+    }
+    return handle_assignment($var, $expr);
+}
+
 sub handle_assignment {
     my ($var, $expr) = @_;
-    # my @expr_vars = ($expr =~ m{(\w)+}g);
-    # if ($expr !~ m{['"']}g) {
-    #     for (@expr_vars) {
-    #         my $expr_var = $_;
-    #         if (exists $symtab{$expr_var}) {
-    #             my $expr_var_val = $symtab{$expr_var};
-    #             $expr =~ s{$expr_var}{$expr_var_val}ge;
-    #         }
-    #     }
-    # }
-
     $symtab{$var} = $expr;
     return "$var = $expr";
 }
