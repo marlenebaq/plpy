@@ -32,720 +32,750 @@ sub new {
 [
 	{#State 0
 		ACTIONS => {
-			'EMPTY_LINE' => 19,
-			'SHEBANG' => 21,
-			'WHITESPACE' => 20,
-			'NEXT' => 22,
-			'UNKNOWN_TOK' => 25,
-			'LAST' => 4,
-			'IF' => 2,
-			'END_OF_FILE' => 6,
-			'CHOMP' => 7,
-			'COMMENT' => 5,
-			'EXIT' => 10,
-			'NO_LINE' => 17,
-			'LOOP_TYPE' => 16,
-			'VAR' => 13,
-			'JOIN' => 14,
-			'PRINT' => 15
+			'LAST' => 23,
+			'EMPTY_LINE' => 26,
+			'NO_LINE' => 25,
+			'UNKNOWN_TOK' => 16,
+			'EXIT' => 22,
+			'JOIN' => 19,
+			'SHEBANG' => 17,
+			'END_OF_FILE' => 11,
+			'WHITESPACE' => 10,
+			'NEXT' => 13,
+			'CHOMP' => 6,
+			'PRINT' => 5,
+			'IF' => 3,
+			'LOOP_TYPE' => 4,
+			'COMMENT' => 7,
+			'VAR' => 8
 		},
 		GOTOS => {
+			'chomp' => 21,
+			'condition' => 9,
 			'var' => 18,
-			'assignment' => 26,
-			'string_func' => 12,
-			'loop' => 11,
-			'program' => 9,
-			'line' => 24,
-			'chomp' => 23,
-			'print_st' => 8,
-			'condition' => 3,
-			'statement' => 1
+			'print_st' => 20,
+			'assignment' => 15,
+			'statement' => 2,
+			'program' => 14,
+			'loop' => 1,
+			'line' => 12,
+			'string_func' => 24
 		}
 	},
 	{#State 1
-		DEFAULT => -3
+		DEFAULT => -13
 	},
 	{#State 2
+		DEFAULT => -3
+	},
+	{#State 3
 		ACTIONS => {
 			"(" => 27
 		}
 	},
-	{#State 3
-		DEFAULT => -12
-	},
 	{#State 4
-		DEFAULT => -17
-	},
-	{#State 5
-		DEFAULT => -4
-	},
-	{#State 6
-		DEFAULT => -6
-	},
-	{#State 7
-		DEFAULT => -51
-	},
-	{#State 8
-		DEFAULT => -10
-	},
-	{#State 9
 		ACTIONS => {
-			'WHITESPACE' => 20,
-			'SHEBANG' => 21,
-			'EMPTY_LINE' => 19,
-			'UNKNOWN_TOK' => 25,
-			'NEXT' => 22,
-			'COMMENT' => 5,
-			'CHOMP' => 7,
-			'END_OF_FILE' => 6,
-			'IF' => 2,
-			'LAST' => 4,
-			'JOIN' => 14,
-			'PRINT' => 15,
-			'VAR' => 13,
-			'' => 28,
-			'LOOP_TYPE' => 16,
-			'NO_LINE' => 17,
-			'EXIT' => 10
+			"(" => 29,
+			'VAR' => 8
 		},
 		GOTOS => {
-			'var' => 18,
-			'assignment' => 26,
-			'line' => 29,
-			'chomp' => 23,
-			'loop' => 11,
-			'string_func' => 12,
-			'print_st' => 8,
-			'condition' => 3,
-			'statement' => 1
+			'var' => 28
 		}
 	},
+	{#State 5
+		ACTIONS => {
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32,
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'JOIN' => 19
+		},
+		GOTOS => {
+			'print_arg' => 36,
+			'var' => 37,
+			'expr' => 34,
+			'string' => 35,
+			'string_func' => 33
+		}
+	},
+	{#State 6
+		DEFAULT => -57
+	},
+	{#State 7
+		DEFAULT => -4
+	},
+	{#State 8
+		DEFAULT => -33
+	},
+	{#State 9
+		DEFAULT => -12
+	},
 	{#State 10
-		DEFAULT => -16
+		ACTIONS => {
+			'CHOMP' => 6,
+			'LOOP_TYPE' => 4,
+			'IF' => 3,
+			'PRINT' => 5,
+			'EXIT' => 22,
+			'VAR' => 8,
+			'JOIN' => 19,
+			'LAST' => 23,
+			'WHITESPACE' => 10,
+			'NEXT' => 13
+		},
+		GOTOS => {
+			'assignment' => 15,
+			'statement' => 38,
+			'loop' => 1,
+			'condition' => 9,
+			'chomp' => 21,
+			'var' => 18,
+			'print_st' => 20,
+			'string_func' => 24
+		}
 	},
 	{#State 11
-		DEFAULT => -13
+		DEFAULT => -6
 	},
 	{#State 12
-		DEFAULT => -15
+		ACTIONS => {
+			"\n" => 39
+		}
 	},
 	{#State 13
-		DEFAULT => -27
+		DEFAULT => -18
 	},
 	{#State 14
 		ACTIONS => {
-			"(" => 30
+			'UNKNOWN_TOK' => 16,
+			'EXIT' => 22,
+			'SHEBANG' => 17,
+			'JOIN' => 19,
+			'LAST' => 23,
+			'EMPTY_LINE' => 26,
+			'NO_LINE' => 25,
+			'CHOMP' => 6,
+			'IF' => 3,
+			'PRINT' => 5,
+			'LOOP_TYPE' => 4,
+			'' => 40,
+			'VAR' => 8,
+			'COMMENT' => 7,
+			'END_OF_FILE' => 11,
+			'WHITESPACE' => 10,
+			'NEXT' => 13
+		},
+		GOTOS => {
+			'line' => 41,
+			'string_func' => 24,
+			'assignment' => 15,
+			'loop' => 1,
+			'statement' => 2,
+			'chomp' => 21,
+			'condition' => 9,
+			'print_st' => 20,
+			'var' => 18
 		}
 	},
 	{#State 15
-		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'JOIN' => 14,
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'NUMBER' => 37
-		},
-		GOTOS => {
-			'var' => 36,
-			'expr' => 35,
-			'string' => 32,
-			'string_func' => 34,
-			'print_arg' => 31
-		}
+		DEFAULT => -11
 	},
 	{#State 16
-		ACTIONS => {
-			"(" => 39,
-			'VAR' => 13
-		},
-		GOTOS => {
-			'var' => 40
-		}
+		DEFAULT => -8
 	},
 	{#State 17
-		DEFAULT => -9
+		DEFAULT => -7
 	},
 	{#State 18
 		ACTIONS => {
-			"=" => 42,
-			'CREMENT' => 41
+			'CREMENT' => 42,
+			"=" => 43
 		}
 	},
 	{#State 19
-		DEFAULT => -5
-	},
-	{#State 20
 		ACTIONS => {
-			'LOOP_TYPE' => 16,
-			'VAR' => 13,
-			'JOIN' => 14,
-			'PRINT' => 15,
-			'NEXT' => 22,
-			'EXIT' => 10,
-			'CHOMP' => 7,
-			'WHITESPACE' => 20,
-			'LAST' => 4,
-			'IF' => 2
-		},
-		GOTOS => {
-			'string_func' => 12,
-			'loop' => 11,
-			'chomp' => 23,
-			'assignment' => 26,
-			'var' => 18,
-			'condition' => 3,
-			'statement' => 43,
-			'print_st' => 8
+			"(" => 44
 		}
 	},
+	{#State 20
+		DEFAULT => -10
+	},
 	{#State 21
-		DEFAULT => -7
-	},
-	{#State 22
-		DEFAULT => -18
-	},
-	{#State 23
 		ACTIONS => {
-			'VAR' => 13
+			'VAR' => 8
 		},
 		DEFAULT => -14,
 		GOTOS => {
-			'var' => 44
+			'var' => 45
 		}
+	},
+	{#State 22
+		DEFAULT => -16
+	},
+	{#State 23
+		DEFAULT => -17
 	},
 	{#State 24
-		ACTIONS => {
-			"\n" => 45
-		}
+		DEFAULT => -15
 	},
 	{#State 25
-		DEFAULT => -8
+		DEFAULT => -9
 	},
 	{#State 26
-		DEFAULT => -11
+		DEFAULT => -5
 	},
 	{#State 27
 		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'NUMBER' => 37
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31
 		},
 		GOTOS => {
+			'var' => 37,
+			'string' => 35,
 			'expr' => 46,
-			'truth' => 47,
-			'string' => 32,
-			'var' => 36
+			'truth' => 47
 		}
 	},
 	{#State 28
-		DEFAULT => 0
+		ACTIONS => {
+			"(" => 48
+		}
 	},
 	{#State 29
 		ACTIONS => {
-			"\n" => 48
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32,
+			'VAR' => 8,
+			'NUMBER' => 30
+		},
+		GOTOS => {
+			'truth' => 49,
+			'string' => 35,
+			'expr' => 46,
+			'var' => 37
 		}
 	},
 	{#State 30
-		ACTIONS => {
-			'QUOTE' => 33,
-			'EMPTY_STRING' => 38
-		},
-		GOTOS => {
-			'string' => 49
-		}
+		DEFAULT => -47
 	},
 	{#State 31
-		ACTIONS => {
-			'SEPARATOR' => 50
-		},
-		DEFAULT => -21
+		DEFAULT => -31
 	},
 	{#State 32
-		DEFAULT => -40
-	},
-	{#State 33
 		ACTIONS => {
-			'STRING' => 51
+			'VAR' => 8,
+			'NEW_LINE' => 52,
+			'SENTENCE' => 53
+		},
+		GOTOS => {
+			'str_content' => 51,
+			'var' => 50
 		}
 	},
-	{#State 34
+	{#State 33
 		DEFAULT => -23
 	},
-	{#State 35
+	{#State 34
 		ACTIONS => {
-			"/" => 53,
-			"*" => 54,
-			'RANGE' => 52,
-			"%" => 56,
+			"/" => 54,
+			"%" => 58,
 			"-" => 55,
-			"+" => 57
+			"+" => 59,
+			'RANGE' => 56,
+			"*" => 57
 		},
 		DEFAULT => -22
 	},
+	{#State 35
+		DEFAULT => -46
+	},
 	{#State 36
-		DEFAULT => -39
+		ACTIONS => {
+			'SEPARATOR' => 60
+		},
+		DEFAULT => -21
 	},
 	{#State 37
-		DEFAULT => -41
+		DEFAULT => -45
 	},
 	{#State 38
-		DEFAULT => -25
-	},
-	{#State 39
-		ACTIONS => {
-			'QUOTE' => 33,
-			'VAR' => 13,
-			'EMPTY_STRING' => 38,
-			'NUMBER' => 37
-		},
-		GOTOS => {
-			'var' => 36,
-			'string' => 32,
-			'truth' => 58,
-			'expr' => 46
-		}
-	},
-	{#State 40
-		ACTIONS => {
-			"(" => 59
-		}
-	},
-	{#State 41
-		DEFAULT => -29
-	},
-	{#State 42
-		ACTIONS => {
-			'NUMBER' => 37,
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'STDIN' => 61,
-			'EMPTY_STRING' => 38
-		},
-		GOTOS => {
-			'expr' => 60,
-			'string' => 32,
-			'var' => 36,
-			'read_op' => 62
-		}
-	},
-	{#State 43
 		DEFAULT => -19
 	},
+	{#State 39
+		DEFAULT => -1
+	},
+	{#State 40
+		DEFAULT => 0
+	},
+	{#State 41
+		ACTIONS => {
+			"\n" => 61
+		}
+	},
+	{#State 42
+		DEFAULT => -35
+	},
+	{#State 43
+		ACTIONS => {
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31,
+			'STDIN' => 64,
+			'NUMBER' => 30,
+			'VAR' => 8
+		},
+		GOTOS => {
+			'var' => 37,
+			'read_op' => 62,
+			'string' => 35,
+			'expr' => 63
+		}
+	},
 	{#State 44
-		DEFAULT => -52
+		ACTIONS => {
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32
+		},
+		GOTOS => {
+			'string' => 65
+		}
 	},
 	{#State 45
-		DEFAULT => -1
+		DEFAULT => -58
 	},
 	{#State 46
 		ACTIONS => {
-			"+" => 57,
+			'NOT_EQUAL' => 69,
+			'EQUAL' => 70,
+			'LTE' => 67,
+			">" => 68,
+			'GTE' => 66,
+			"+" => 59,
+			'RANGE' => 56,
+			"*" => 57,
+			"<" => 71,
+			"%" => 58,
 			"-" => 55,
-			'GTE' => 64,
-			"%" => 56,
-			'LTE' => 68,
-			"<" => 67,
-			'RANGE' => 52,
-			"/" => 53,
-			"*" => 54,
-			'NOT_EQUAL' => 65,
-			">" => 66,
-			'EQUAL' => 63
+			"/" => 54
 		},
-		DEFAULT => -48
+		DEFAULT => -54
 	},
 	{#State 47
 		ACTIONS => {
-			")" => 69
+			")" => 72
 		}
 	},
 	{#State 48
-		DEFAULT => -2
-	},
-	{#State 49
 		ACTIONS => {
-			'SEPARATOR' => 70
-		}
-	},
-	{#State 50
-		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'QUOTE' => 33,
-			'VAR' => 13,
-			'NUMBER' => 37
+			'VAR' => 8,
+			'NUMBER' => 30,
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32
 		},
 		GOTOS => {
-			'expr' => 71,
-			'string' => 32,
-			'var' => 36
-		}
-	},
-	{#State 51
-		ACTIONS => {
-			'QUOTE' => 72
-		}
-	},
-	{#State 52
-		ACTIONS => {
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'EMPTY_STRING' => 38,
-			'NUMBER' => 37
-		},
-		GOTOS => {
-			'var' => 36,
-			'string' => 32,
+			'var' => 37,
+			'string' => 35,
 			'expr' => 73
 		}
 	},
-	{#State 53
+	{#State 49
 		ACTIONS => {
-			'QUOTE' => 33,
-			'VAR' => 13,
-			'EMPTY_STRING' => 38,
-			'NUMBER' => 37
+			")" => 74
+		}
+	},
+	{#State 50
+		DEFAULT => -27
+	},
+	{#State 51
+		ACTIONS => {
+			'QUOTE' => 76,
+			'SENTENCE' => 78,
+			'NEW_LINE' => 77,
+			'VAR' => 8
 		},
 		GOTOS => {
-			'var' => 36,
-			'string' => 32,
-			'expr' => 74
+			'var' => 75
 		}
+	},
+	{#State 52
+		DEFAULT => -26
+	},
+	{#State 53
+		DEFAULT => -25
 	},
 	{#State 54
 		ACTIONS => {
-			'NUMBER' => 37,
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32,
+			'VAR' => 8,
+			'NUMBER' => 30
 		},
 		GOTOS => {
-			'var' => 36,
-			'string' => 32,
-			'expr' => 75
+			'var' => 37,
+			'string' => 35,
+			'expr' => 79
 		}
 	},
 	{#State 55
 		ACTIONS => {
-			'NUMBER' => 37,
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31,
+			'NUMBER' => 30,
+			'VAR' => 8
 		},
 		GOTOS => {
-			'var' => 36,
-			'string' => 32,
-			'expr' => 76
+			'var' => 37,
+			'string' => 35,
+			'expr' => 80
 		}
 	},
 	{#State 56
 		ACTIONS => {
-			'NUMBER' => 37,
-			'EMPTY_STRING' => 38,
-			'QUOTE' => 33,
-			'VAR' => 13
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32,
+			'VAR' => 8,
+			'NUMBER' => 30
 		},
 		GOTOS => {
-			'expr' => 77,
-			'string' => 32,
-			'var' => 36
+			'expr' => 81,
+			'string' => 35,
+			'var' => 37
 		}
 	},
 	{#State 57
 		ACTIONS => {
-			'NUMBER' => 37,
-			'EMPTY_STRING' => 38,
-			'QUOTE' => 33,
-			'VAR' => 13
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32
 		},
 		GOTOS => {
-			'var' => 36,
-			'expr' => 78,
-			'string' => 32
+			'expr' => 82,
+			'string' => 35,
+			'var' => 37
 		}
 	},
 	{#State 58
 		ACTIONS => {
-			")" => 79
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31
+		},
+		GOTOS => {
+			'expr' => 83,
+			'string' => 35,
+			'var' => 37
 		}
 	},
 	{#State 59
 		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'NUMBER' => 37
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31,
+			'VAR' => 8,
+			'NUMBER' => 30
 		},
 		GOTOS => {
-			'expr' => 80,
-			'string' => 32,
-			'var' => 36
+			'expr' => 84,
+			'string' => 35,
+			'var' => 37
 		}
 	},
 	{#State 60
 		ACTIONS => {
-			"-" => 55,
-			"%" => 56,
-			"+" => 57,
-			'RANGE' => 52,
-			"/" => 53,
-			"*" => 54
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31,
+			'VAR' => 8,
+			'NUMBER' => 30
 		},
-		DEFAULT => -28
+		GOTOS => {
+			'var' => 37,
+			'string' => 35,
+			'expr' => 85
+		}
 	},
 	{#State 61
-		DEFAULT => -31
+		DEFAULT => -2
 	},
 	{#State 62
-		DEFAULT => -30
+		DEFAULT => -36
 	},
 	{#State 63
 		ACTIONS => {
-			'QUOTE' => 33,
-			'VAR' => 13,
-			'EMPTY_STRING' => 38,
-			'NUMBER' => 37
+			"%" => 58,
+			"-" => 55,
+			"/" => 54,
+			"+" => 59,
+			"*" => 57,
+			'RANGE' => 56
 		},
-		GOTOS => {
-			'var' => 36,
-			'string' => 32,
-			'expr' => 81
-		}
+		DEFAULT => -34
 	},
 	{#State 64
-		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'NUMBER' => 37
-		},
-		GOTOS => {
-			'expr' => 82,
-			'string' => 32,
-			'var' => 36
-		}
+		DEFAULT => -37
 	},
 	{#State 65
 		ACTIONS => {
-			'NUMBER' => 37,
-			'QUOTE' => 33,
-			'VAR' => 13,
-			'EMPTY_STRING' => 38
-		},
-		GOTOS => {
-			'expr' => 83,
-			'string' => 32,
-			'var' => 36
+			'SEPARATOR' => 86
 		}
 	},
 	{#State 66
 		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33,
-			'NUMBER' => 37
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32
 		},
 		GOTOS => {
-			'var' => 36,
-			'expr' => 84,
-			'string' => 32
+			'string' => 35,
+			'expr' => 87,
+			'var' => 37
 		}
 	},
 	{#State 67
 		ACTIONS => {
-			'NUMBER' => 37,
-			'EMPTY_STRING' => 38,
-			'VAR' => 13,
-			'QUOTE' => 33
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31
 		},
 		GOTOS => {
-			'expr' => 85,
-			'string' => 32,
-			'var' => 36
+			'expr' => 88,
+			'string' => 35,
+			'var' => 37
 		}
 	},
 	{#State 68
 		ACTIONS => {
-			'EMPTY_STRING' => 38,
-			'QUOTE' => 33,
-			'VAR' => 13,
-			'NUMBER' => 37
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32
 		},
 		GOTOS => {
-			'var' => 36,
-			'expr' => 86,
-			'string' => 32
+			'var' => 37,
+			'expr' => 89,
+			'string' => 35
 		}
 	},
 	{#State 69
 		ACTIONS => {
-			"{" => 87
+			'QUOTE' => 32,
+			'EMPTY_STRING' => 31,
+			'NUMBER' => 30,
+			'VAR' => 8
+		},
+		GOTOS => {
+			'var' => 37,
+			'string' => 35,
+			'expr' => 90
 		}
 	},
 	{#State 70
 		ACTIONS => {
-			'VAR' => 13
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32,
+			'VAR' => 8,
+			'NUMBER' => 30
 		},
 		GOTOS => {
-			'var' => 88
+			'string' => 35,
+			'expr' => 91,
+			'var' => 37
 		}
 	},
 	{#State 71
 		ACTIONS => {
-			'RANGE' => 52,
-			"/" => 53,
-			"*" => 54,
-			"+" => 57,
-			"-" => 55,
-			"%" => 56
+			'NUMBER' => 30,
+			'VAR' => 8,
+			'EMPTY_STRING' => 31,
+			'QUOTE' => 32
 		},
-		DEFAULT => -24
+		GOTOS => {
+			'expr' => 92,
+			'string' => 35,
+			'var' => 37
+		}
 	},
 	{#State 72
-		DEFAULT => -26
+		ACTIONS => {
+			"{" => 93
+		}
 	},
 	{#State 73
-		DEFAULT => -38
+		ACTIONS => {
+			"*" => 57,
+			'RANGE' => 56,
+			"+" => 59,
+			")" => 94,
+			"/" => 54,
+			"-" => 55,
+			"%" => 58
+		}
 	},
 	{#State 74
 		ACTIONS => {
-			'RANGE' => 52
-		},
-		DEFAULT => -36
+			"{" => 95
+		}
 	},
 	{#State 75
-		ACTIONS => {
-			'RANGE' => 52
-		},
-		DEFAULT => -35
+		DEFAULT => -30
 	},
 	{#State 76
-		ACTIONS => {
-			"%" => 56,
-			"*" => 54,
-			"/" => 53,
-			'RANGE' => 52
-		},
-		DEFAULT => -34
+		DEFAULT => -32
 	},
 	{#State 77
-		ACTIONS => {
-			'RANGE' => 52
-		},
-		DEFAULT => -37
+		DEFAULT => -28
 	},
 	{#State 78
-		ACTIONS => {
-			"%" => 56,
-			'RANGE' => 52,
-			"/" => 53,
-			"*" => 54
-		},
-		DEFAULT => -33
+		DEFAULT => -29
 	},
 	{#State 79
 		ACTIONS => {
-			"{" => 89
-		}
-	},
-	{#State 80
-		ACTIONS => {
-			")" => 90,
-			"+" => 57,
-			"*" => 54,
-			"/" => 53,
-			'RANGE' => 52,
-			"%" => 56,
-			"-" => 55
-		}
-	},
-	{#State 81
-		ACTIONS => {
-			'RANGE' => 52,
-			"/" => 53,
-			"*" => 54,
-			"-" => 55,
-			"%" => 56,
-			"+" => 57
-		},
-		DEFAULT => -46
-	},
-	{#State 82
-		ACTIONS => {
-			'RANGE' => 52,
-			"*" => 54,
-			"/" => 53,
-			"+" => 57,
-			"-" => 55,
-			"%" => 56
-		},
-		DEFAULT => -44
-	},
-	{#State 83
-		ACTIONS => {
-			'RANGE' => 52,
-			"*" => 54,
-			"/" => 53,
-			"-" => 55,
-			"%" => 56,
-			"+" => 57
-		},
-		DEFAULT => -47
-	},
-	{#State 84
-		ACTIONS => {
-			'RANGE' => 52,
-			"*" => 54,
-			"/" => 53,
-			"+" => 57,
-			"-" => 55,
-			"%" => 56
+			'RANGE' => 56
 		},
 		DEFAULT => -42
 	},
-	{#State 85
+	{#State 80
 		ACTIONS => {
-			'RANGE' => 52,
-			"*" => 54,
-			"/" => 53,
-			"-" => 55,
-			"%" => 56,
-			"+" => 57
+			'RANGE' => 56,
+			"*" => 57,
+			"/" => 54,
+			"%" => 58
+		},
+		DEFAULT => -40
+	},
+	{#State 81
+		DEFAULT => -44
+	},
+	{#State 82
+		ACTIONS => {
+			'RANGE' => 56
+		},
+		DEFAULT => -41
+	},
+	{#State 83
+		ACTIONS => {
+			'RANGE' => 56
 		},
 		DEFAULT => -43
 	},
+	{#State 84
+		ACTIONS => {
+			"/" => 54,
+			'RANGE' => 56,
+			"*" => 57,
+			"%" => 58
+		},
+		DEFAULT => -39
+	},
+	{#State 85
+		ACTIONS => {
+			"/" => 54,
+			"-" => 55,
+			"%" => 58,
+			"*" => 57,
+			'RANGE' => 56,
+			"+" => 59
+		},
+		DEFAULT => -24
+	},
 	{#State 86
 		ACTIONS => {
-			"-" => 55,
-			"%" => 56,
-			"+" => 57,
-			'RANGE' => 52,
-			"*" => 54,
-			"/" => 53
+			'VAR' => 8
 		},
-		DEFAULT => -45
+		GOTOS => {
+			'var' => 96
+		}
 	},
 	{#State 87
-		DEFAULT => -32
+		ACTIONS => {
+			"+" => 59,
+			"*" => 57,
+			'RANGE' => 56,
+			"/" => 54,
+			"%" => 58,
+			"-" => 55
+		},
+		DEFAULT => -50
 	},
 	{#State 88
 		ACTIONS => {
-			")" => 91
-		}
+			"%" => 58,
+			"-" => 55,
+			"/" => 54,
+			"+" => 59,
+			'RANGE' => 56,
+			"*" => 57
+		},
+		DEFAULT => -51
 	},
 	{#State 89
-		DEFAULT => -49
+		ACTIONS => {
+			"%" => 58,
+			"-" => 55,
+			"/" => 54,
+			"+" => 59,
+			'RANGE' => 56,
+			"*" => 57
+		},
+		DEFAULT => -48
 	},
 	{#State 90
 		ACTIONS => {
-			"{" => 92
-		}
+			"/" => 54,
+			"-" => 55,
+			"%" => 58,
+			'RANGE' => 56,
+			"*" => 57,
+			"+" => 59
+		},
+		DEFAULT => -53
 	},
 	{#State 91
-		DEFAULT => -20
+		ACTIONS => {
+			"+" => 59,
+			'RANGE' => 56,
+			"*" => 57,
+			"%" => 58,
+			"-" => 55,
+			"/" => 54
+		},
+		DEFAULT => -52
 	},
 	{#State 92
-		DEFAULT => -50
+		ACTIONS => {
+			"*" => 57,
+			'RANGE' => 56,
+			"+" => 59,
+			"/" => 54,
+			"-" => 55,
+			"%" => 58
+		},
+		DEFAULT => -49
+	},
+	{#State 93
+		DEFAULT => -38
+	},
+	{#State 94
+		ACTIONS => {
+			"{" => 97
+		}
+	},
+	{#State 95
+		DEFAULT => -55
+	},
+	{#State 96
+		ACTIONS => {
+			")" => 98
+		}
+	},
+	{#State 97
+		DEFAULT => -56
+	},
+	{#State 98
+		DEFAULT => -20
 	}
 ],
                                   yyrules  =>
@@ -766,6 +796,7 @@ sub
 {
                     my $s = $_[1];
                     $s =~ s{\$}{}g;
+                    # print "$s\n";
                     push @py_code, "$s\n";
                     do_imports($s);
                 }
@@ -773,19 +804,19 @@ sub
 	[#Rule 4
 		 'line', 1,
 sub
-#line 43 "PlPyParser.yapp"
+#line 44 "PlPyParser.yapp"
 { push @py_code, "$_[1]\n"; }
 	],
 	[#Rule 5
 		 'line', 1,
 sub
-#line 44 "PlPyParser.yapp"
+#line 45 "PlPyParser.yapp"
 { push @py_code, "\n"; }
 	],
 	[#Rule 6
 		 'line', 1,
 sub
-#line 46 "PlPyParser.yapp"
+#line 47 "PlPyParser.yapp"
 {
                     print_py();
                     exit 0;
@@ -794,13 +825,13 @@ sub
 	[#Rule 7
 		 'line', 1,
 sub
-#line 50 "PlPyParser.yapp"
+#line 51 "PlPyParser.yapp"
 { push @py_header, "#!/usr/local/bin/python3.5 -u\n"; }
 	],
 	[#Rule 8
 		 'line', 1,
 sub
-#line 51 "PlPyParser.yapp"
+#line 52 "PlPyParser.yapp"
 { push @py_code, "# $_[1]\n"; }
 	],
 	[#Rule 9
@@ -827,31 +858,31 @@ sub
 	[#Rule 16
 		 'statement', 1,
 sub
-#line 61 "PlPyParser.yapp"
+#line 62 "PlPyParser.yapp"
 { return "sys.exit"; }
 	],
 	[#Rule 17
 		 'statement', 1,
 sub
-#line 62 "PlPyParser.yapp"
+#line 63 "PlPyParser.yapp"
 { return "break"; }
 	],
 	[#Rule 18
 		 'statement', 1,
 sub
-#line 63 "PlPyParser.yapp"
+#line 64 "PlPyParser.yapp"
 { return "continue"; }
 	],
 	[#Rule 19
 		 'statement', 2,
 sub
-#line 64 "PlPyParser.yapp"
+#line 65 "PlPyParser.yapp"
 { return join('', $_[1], $_[2]); }
 	],
 	[#Rule 20
 		 'string_func', 6,
 sub
-#line 68 "PlPyParser.yapp"
+#line 69 "PlPyParser.yapp"
 {
                     # print "woo\n";
                     # print "$_[3].join($_[4])";
@@ -861,7 +892,7 @@ sub
 	[#Rule 21
 		 'print_st', 2,
 sub
-#line 76 "PlPyParser.yapp"
+#line 77 "PlPyParser.yapp"
 {
                     my $print_tok = $_[1];
                     my $args = $_[2];
@@ -877,175 +908,196 @@ sub
 	[#Rule 24
 		 'print_arg', 3,
 sub
-#line 85 "PlPyParser.yapp"
+#line 86 "PlPyParser.yapp"
 { "$_[1], $_[3]"; }
 	],
 	[#Rule 25
-		 'string', 1,
-sub
-#line 88 "PlPyParser.yapp"
-{ return "$_[1]"; }
+		 'str_content', 1, undef
 	],
 	[#Rule 26
-		 'string', 3,
-sub
-#line 89 "PlPyParser.yapp"
-{ return "$_[1]$_[2]$_[3]"}
+		 'str_content', 1, undef
 	],
 	[#Rule 27
-		 'var', 1,
-sub
-#line 100 "PlPyParser.yapp"
-{ return handle_var($_[1]); }
+		 'str_content', 1, undef
 	],
 	[#Rule 28
+		 'str_content', 2,
+sub
+#line 92 "PlPyParser.yapp"
+{ return "$_[1]$_[2]"; }
+	],
+	[#Rule 29
+		 'str_content', 2, undef
+	],
+	[#Rule 30
+		 'str_content', 2, undef
+	],
+	[#Rule 31
+		 'string', 1,
+sub
+#line 97 "PlPyParser.yapp"
+{ return "$_[1]"; }
+	],
+	[#Rule 32
+		 'string', 3,
+sub
+#line 98 "PlPyParser.yapp"
+{ return "$_[1]$_[2]$_[3]"}
+	],
+	[#Rule 33
+		 'var', 1,
+sub
+#line 101 "PlPyParser.yapp"
+{ return handle_var($_[1]); }
+	],
+	[#Rule 34
 		 'assignment', 3,
 sub
-#line 105 "PlPyParser.yapp"
+#line 106 "PlPyParser.yapp"
 {
                     return handle_assignment($_[1], $_[3]);
                 }
 	],
-	[#Rule 29
+	[#Rule 35
 		 'assignment', 2,
 sub
-#line 109 "PlPyParser.yapp"
+#line 110 "PlPyParser.yapp"
 {
                     return handle_crement($_[1], $_[2]);
                 }
 	],
-	[#Rule 30
+	[#Rule 36
 		 'assignment', 3,
 sub
-#line 112 "PlPyParser.yapp"
+#line 113 "PlPyParser.yapp"
 { return "$_[1] $_[2] $_[3]"; }
 	],
-	[#Rule 31
+	[#Rule 37
 		 'read_op', 1,
 sub
-#line 116 "PlPyParser.yapp"
+#line 117 "PlPyParser.yapp"
 {
                     my $read_op = $_[1];
                     return handle_read_op($read_op);
                 }
 	],
-	[#Rule 32
+	[#Rule 38
 		 'condition', 5,
 sub
-#line 122 "PlPyParser.yapp"
+#line 123 "PlPyParser.yapp"
 { "$_[1] $_[3]:" }
 	],
-	[#Rule 33
-		 'expr', 3,
-sub
-#line 125 "PlPyParser.yapp"
-{ "$_[1] + $_[3]" }
-	],
-	[#Rule 34
+	[#Rule 39
 		 'expr', 3,
 sub
 #line 126 "PlPyParser.yapp"
-{ "$_[1] - $_[3]" }
+{ "$_[1] + $_[3]" }
 	],
-	[#Rule 35
+	[#Rule 40
 		 'expr', 3,
 sub
 #line 127 "PlPyParser.yapp"
-{ "$_[1] * $_[3]" }
+{ "$_[1] - $_[3]" }
 	],
-	[#Rule 36
+	[#Rule 41
 		 'expr', 3,
 sub
 #line 128 "PlPyParser.yapp"
-{ "$_[1] / $_[3]" }
+{ "$_[1] * $_[3]" }
 	],
-	[#Rule 37
+	[#Rule 42
 		 'expr', 3,
 sub
 #line 129 "PlPyParser.yapp"
-{ "$_[1] % $_[3]" }
+{ "$_[1] / $_[3]" }
 	],
-	[#Rule 38
+	[#Rule 43
 		 'expr', 3,
 sub
-#line 131 "PlPyParser.yapp"
+#line 130 "PlPyParser.yapp"
+{ "$_[1] % $_[3]" }
+	],
+	[#Rule 44
+		 'expr', 3,
+sub
+#line 132 "PlPyParser.yapp"
 {
                     my $start = $_[1];
                     my $end = $_[3];
                     return handle_range($start, $end);
                 }
 	],
-	[#Rule 39
+	[#Rule 45
 		 'expr', 1, undef
 	],
-	[#Rule 40
+	[#Rule 46
 		 'expr', 1, undef
 	],
-	[#Rule 41
+	[#Rule 47
 		 'expr', 1, undef
 	],
-	[#Rule 42
-		 'truth', 3,
-sub
-#line 141 "PlPyParser.yapp"
-{ "$_[1] > $_[3]" }
-	],
-	[#Rule 43
+	[#Rule 48
 		 'truth', 3,
 sub
 #line 142 "PlPyParser.yapp"
-{ "$_[1] < $_[3]" }
+{ "$_[1] > $_[3]" }
 	],
-	[#Rule 44
+	[#Rule 49
 		 'truth', 3,
 sub
 #line 143 "PlPyParser.yapp"
-{ "$_[1] >= $_[3]" }
+{ "$_[1] < $_[3]" }
 	],
-	[#Rule 45
+	[#Rule 50
 		 'truth', 3,
 sub
 #line 144 "PlPyParser.yapp"
-{ "$_[1] <= $_[3]" }
+{ "$_[1] >= $_[3]" }
 	],
-	[#Rule 46
+	[#Rule 51
 		 'truth', 3,
 sub
 #line 145 "PlPyParser.yapp"
-{ "$_[1] == $_[3]" }
+{ "$_[1] <= $_[3]" }
 	],
-	[#Rule 47
+	[#Rule 52
 		 'truth', 3,
 sub
 #line 146 "PlPyParser.yapp"
+{ "$_[1] == $_[3]" }
+	],
+	[#Rule 53
+		 'truth', 3,
+sub
+#line 147 "PlPyParser.yapp"
 { "$_[1] != $_[3]" }
 	],
-	[#Rule 48
+	[#Rule 54
 		 'truth', 1, undef
 	],
-	[#Rule 49
+	[#Rule 55
 		 'loop', 5,
 sub
-#line 150 "PlPyParser.yapp"
+#line 151 "PlPyParser.yapp"
 { "$_[1] $_[3]:" }
 	],
-	[#Rule 50
+	[#Rule 56
 		 'loop', 6,
 sub
-#line 152 "PlPyParser.yapp"
+#line 153 "PlPyParser.yapp"
 {
                     my $iterator = $_[2];
                     my $iterable = $_[4];
                     "for $iterator in $iterable:";
                 }
 	],
-	[#Rule 51
+	[#Rule 57
 		 'chomp', 1, undef
 	],
-	[#Rule 52
+	[#Rule 58
 		 'chomp', 2,
 sub
-#line 161 "PlPyParser.yapp"
+#line 162 "PlPyParser.yapp"
 {
                     my $var = $_[2];
                     return handle_chomp($var);
@@ -1056,7 +1108,7 @@ sub
     bless($self,$class);
 }
 
-#line 166 "PlPyParser.yapp"
+#line 167 "PlPyParser.yapp"
 
 
 use constant {
@@ -1082,7 +1134,6 @@ sub print_py {
 sub handle_print {
     my $print_tok = $_[0];
     my $arg = $_[1];
-    # print "----$print_tok $arg\n";
     my $has_new_line = 0;
     # remove only trailing new lines
     # i.e. print "Hello\nWorld"; is passable

@@ -11,8 +11,9 @@ sub err {
     }
     print "Expected: ";
     for (@expectedTok) {
-        print "$$_";
+        print "$$_ ";
     }
+    print "\n";
 }
 
 # this lexer tokenizes input and returns tokens to the parser
@@ -51,7 +52,7 @@ sub lex {
     $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", undef); #
     $$lineData =~ s{^(\s*['"]\s*['"'])}{} and return ("EMPTY_STRING", $1);
     $$lineData =~ s{^(\s*['"])}{} and return ("QUOTE", $1);
-    $$lineData =~ s{^(\s*\\n)}{} and return ("NEW_LINE", $1);
+    # $$lineData =~ s{^(\s*\\n)}{} and return ("NEW_LINE", $1);
     $$lineData =~ s{^(,\s*)}{} and return ("SEPARATOR", $1); # remove
 
     $$lineData =~ s{^\s*([\+-]){2}}{} and return ("CREMENT", $1);
@@ -72,8 +73,8 @@ sub lex {
     # operators
     $$lineData =~ s{^\s*exit}{} and return ("EXIT", undef); #
     # $$lineData =~ s{^\s*(\w+)}{} and return ("WORD", $1);
-
-    $$lineData =~ s{^([^\n]*)"}{"} and return ("STRING", $1);
+    $$lineData =~ s{^(\s*\\n)}{} and return ("NEW_LINE", $1);
+    $$lineData =~ s{^([^\n]*)"}{"} and return ("SENTENCE", $1);
 
     print "# \'$$lineData\' (Unknown token)\n" and die;
 }

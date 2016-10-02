@@ -37,6 +37,7 @@ line        : statement
                 {
                     my $s = $_[1];
                     $s =~ s{\$}{}g;
+                    # print "$s\n";
                     push @py_code, "$s\n";
                     do_imports($s);
                 }
@@ -85,17 +86,17 @@ print_arg   : expr
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
-string      : EMPTY_STRING { return "$_[1]"; }
-            | QUOTE STRING QUOTE { return "$_[1]$_[2]$_[3]"}
+str_content : SENTENCE
+            | NEW_LINE
+            | var
+            | str_content NEW_LINE { return "$_[1]$_[2]"; }
+            | str_content SENTENCE
+            | str_content var
             ;
 
-# sentence    : WORD
-#             | var
-#             | NEW_LINE
-#             | sentence WORD { return "$_[1] $_[2]";}
-#             | sentence var
-#             | sentence NEW_LINE { return "$_[1]\\n"; }
-#             ;
+string      : EMPTY_STRING { return "$_[1]"; }
+            | QUOTE str_content QUOTE { return "$_[1]$_[2]$_[3]"}
+            ;
 
 var         : VAR { return handle_var($_[1]); }
             # | VAR_SYMBOL WORD index { return handle_var($_[2]); }
@@ -188,7 +189,6 @@ sub print_py {
 sub handle_print {
     my $print_tok = $_[0];
     my $arg = $_[1];
-    # print "----$print_tok $arg\n";
     my $has_new_line = 0;
     # remove only trailing new lines
     # i.e. print "Hello\nWorld"; is passable
