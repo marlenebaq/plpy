@@ -3,14 +3,26 @@
 use PlPyParser;
 my $parser = PlPyParser->new(  );
 $parser->YYData->{DATA} = <>;
-# print ($parser->YYData->{DATA});
-$parser->YYParse(YYlex => \&lex, YYerror => \&err); # lex returnsa
 
-# this lexer tokenizes input and returns tokens to the parser
-# the parser then interprets the input and handles it accordingly
+# ==> YYParse (see PlPyParser)
+# YYParse uses tokens returned by its lexer to recursively interpret
+# the grammar rules defined in PlPyParser.yapp. Every grammar rule has
+# a corresponding action (written in Perl) which is carried out when
+# the Parser finds a line adhering to that rule.
+$parser->YYParse(YYlex => \&lex, YYerror => \&err);
+
+# ==> YYLex (lex)
+# This lexer is a callback for PlPyParserModule's YYParse function
+# Its reads input left to right and identifies tokens for the parser's
+# YYParse to use.
+
+# Every time the lexer identifies a token, it removes it from the string
+# and sends the appropriate information about the token in the form
+# of a (TOKEN, VALUE) array back to YYParse.
 sub lex {
     my $lineData = \$_[0]->YYData->{DATA};
 
+    # If there is no file read into the data, read from STDIN
     if (!length $$lineData) {
         if (eof STDIN) {
             return ("END_OF_FILE", undef);
@@ -24,21 +36,16 @@ sub lex {
         $$lineData =~ s{^(#!).*}{} and return ("SHEBANG", $1);
     }
 
-    $$lineData =~ s{^(\s{4})}{} and return ("WHITESPACE", $1);
     $$lineData =~ s{;$}{}; # remove trailing ;
-    $$lineData =~ s{^(#.*)}{} and return ("COMMENT", $1); # remove
+    $$lineData =~ s{^(\s{4})}{} and return ("WHITESPACE", $1);
+    $$lineData =~ s{^(#.*)}{} and return ("COMMENT", $1);
 
     $$lineData =~ s{^\s*print\s*}{} and return ("PRINT", undef);
     $$lineData =~ s{^\s*(if)\s*}{} and return ("IF", $1);
     $$lineData =~ s{^\s*(elsif)\s*}{} and return ("ELSIF", $1);
-    # if ($$lineData =~ m{^\s*\}\s*else\s*\{}) {
-    #     print "ELSE $$lineData\n";
-    # }
     $$lineData =~ s{^\s*(else)\s*\{}}{} and return ("ELSE", $1);
     $$lineData =~ s{^\s*(while|foreach|for)\s*}{} and return ("LOOP_TYPE", $1);
 
-    # TODO: this matches ".."
-    # TODO: refactor -- make sure excl
     $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", undef);
 
     $$lineData =~ s{^\s*(["']{2})}{} and return ("EMPTY_STRING", $1);
@@ -77,6 +84,8 @@ sub lex {
     print "# \'$$lineData\' (Unknown token)\n" and die;
 }
 
+# ==> YYError (err)
+# A simple implementation YYParse's error function for debugging purposes.
 sub err {
     my $errToken = \$_[0]->YYCurtok;
     my $errVal = \$_[0]->YYCurval;

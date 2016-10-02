@@ -16,7 +16,6 @@
 %token WHITESPACE
 %token SEPARATOR
 %token IF
-%token NO_LINE
 %token GTE
 %token LTE
 %token CHOMP
@@ -268,6 +267,7 @@ sub handle_print {
     if ($has_new_line == 0) {
         $arg .= ", end=\"\"";
     }
+    $arg .= ", flush=True";
     return "print($arg)";
 }
 
@@ -387,7 +387,7 @@ sub handle_conditional {
 sub cast_assignment {
     my ($var, $typecast) = @_;
     my $assn = $py_code[$last_assignment{$var}];
-    my $whitespace;
+    my $whitespace = "";
     if ($assn =~ m{^(\s+)}) {
         $whitespace = $1;
     }
