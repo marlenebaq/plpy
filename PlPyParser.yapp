@@ -5,7 +5,7 @@
     my @print_vars;
     my @py_header;
     my @py_code;
-    my $curr_line_num; %}
+    my $curr_line_num = 0; %}
 %token NUMBER
 %token SHEBANG
 %token PRINT
@@ -20,6 +20,11 @@
 %token EXIT
 %token CREMENT
 %token MATCH_OP
+%token MATH_OP
+%token BW_BINARY_OP
+%token BW_UNARY_OP
+%token RANGE
+
 
 %left MATH_OP
 %left BW_BINARY_OP
@@ -29,33 +34,43 @@
 %%
 
 program     : line '\n'
+            | line endfile
+            | program endfile
             | program line '\n'
+            | program line endfile
+            ;
+
+endfile     : END_OF_FILE
+                {
+                    print_py();
+                    exit 0;
+                }
             ;
 
 line        : statement
                 {
                     my $stmt = $_[1];
-                    # TODO: gross hacky
-                    $stmt =~ s{[\$@]}{}g;
-                    print "$stmt\n";
+                    $stmt = do_imports_and_clean_vars($stmt);
                     push @py_code, "$stmt\n";
                     $curr_line_num = scalar @py_code;
-                    do_imports($stmt);
                 }
-            | COMMENT { push @py_code, "$_[1]\n"; }
-            | EMPTY_LINE { push @py_code, "\n"; }
-            | END_OF_FILE
-                {
-                    print_py();
-                    exit 0;
-                }
-            | SHEBANG { push @py_header, "#!/usr/local/bin/python3.5 -u\n"; }
-            | UNKNOWN_TOK { push @py_code, "# $_[1]\n"; }
+            | comment {
+                push @py_code, "$_[1]\n";
+                $curr_line_num = scalar @py_code;
+            }
+            | EMPTY_LINE {
+                push @py_code, "\n";
+                $curr_line_num = scalar @py_code;
+            }
+            | SHEBANG {
+                push @py_header, "#!/usr/local/bin/python3.5 -u\n";
+                $curr_line_num = scalar @py_code;
+            }
+            | UNKNOWN_TOK {
+                push @py_code, "# $_[1]\n";
+                $curr_line_num = scalar @py_code;
+            }
             | no_line #no need to push anything
-            ;
-
-no_line     : '}'
-            | WHITESPACE no_line
             ;
 
 statement   : print_st | assignment | condition | loop
@@ -67,20 +82,32 @@ statement   : print_st | assignment | condition | loop
             | EXIT { return "sys.exit"; }
             | LAST { return "break"; }
             | NEXT { return "continue"; }
-            | WHITESPACE statement { return join('', $_[1], $_[2]);
-        }
+            | WHITESPACE statement { return join('', $_[1], $_[2]); }
             ;
 
-regex       : var MATCH_OP MATCH { print "blah\n"; return handle_re($_[1],
-$_[3]); }
-            | var MATCH_OP SUBS { return handle_re($_[1], $_[3]); }
+loop        : LOOP_TYPE '(' truth ')' '{' { return handle_truth($_[1], $_[3]); }
+            | LOOP_TYPE var '(' expr ')' '{' { return handle_loop($_[2], $_[4]);
+            }
+            | LOOP_TYPE '(' assignment ')' '{'
+                {
+                    my $assn = $_[3];
+                    return handle_input_loop($assn);
+                }
             ;
 
-string_func : JOIN '(' string SEPARATOR expr ')'
+chomp       : CHOMP
+            | CHOMP var { return handle_chomp($_[2]); }
+            ;
+
+string_func : JOIN '(' string SEPARATOR value ')'
                 {
                     return "$_[3].join($_[5])";
                 }
-            | SPLIT '(' MATCH SEPARATOR expr ')'
+            | JOIN '(' string SEPARATOR array ')'
+                {
+                    return "$_[3].join($_[5])";
+                }
+            | SPLIT '(' MATCH SEPARATOR value ')'
                 {
                     return "$_[5].split('$_[3]')";
                 }
@@ -95,12 +122,46 @@ print_st    : PRINT print_arg
 
 print_arg   : expr
             | string_func
-            | print_arg SEPARATOR string_func
+            | print_arg SEPARATOR string_func { "$_[1], $_[3]"; }
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
+
 string      : EMPTY_STRING
             | SENTENCE
+            | value CONCAT value { return handle_concat($_[1], $_
+                [2], $_[3]); }
+            ;
+
+array       : value { "$_[1]"; }
+            | value SEPARATOR { "$_[1]$_[2]"; }
+            | array value { "$_[1]$_[2]"; }
+            | array value SEPARATOR { "$_[1]$_[2]$_[3]"; }
+            ;
+
+expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
+            | expr BW_BINARY_OP expr { "$_[1] $_[2] $_[3]" }
+            | BW_UNARY_OP expr
+            | expr RANGE expr
+                {
+                    my $start = $_[1];
+                    my $end = $_[3];
+                    return handle_range($start, $end);
+                }
+            | value
+            ;
+
+value       : NUMBER
+            | string
+            | var
+            ;
+
+hash_line   : WHITESPACE value SEPARATOR value SEPARATOR '\n' { "$_[2]: $_[4]";}
+            | WHITESPACE value '=>' value SEPARATOR '\n' { "$_[2]: $_[4]";}
+            ;
+
+hash        : hash_line
+            | hash hash_line { "$_[1], $_[2]";}
             ;
 
 assignment  : var '=' expr
@@ -111,6 +172,15 @@ assignment  : var '=' expr
                 {
                     return handle_assignment($_[1], $_[3]);
                 }
+            | var '=' '(' array ')'
+                {
+                    return handle_assignment($_[1], $_[4]);
+                }
+            | var '=' '(' '\n' hash ')'
+                {
+                    return handle_assignment($_[1], $_[5]);
+                }
+            | var CONCAT_EQ value { return handle_concat($_[1], $_[2], $_[3]); }
             | var CREMENT
                 {
                     return handle_crement($_[1], $_[2]);
@@ -126,29 +196,13 @@ input       : INPUT
 
 condition   : IF '(' truth ')' '{'
                 {
-                    return handle_conditional($_[1], $_[3]);
-                    # "if $_[3]:"
+                    return handle_truth($_[1], $_[3]);
                 }
             | '}' ELSIF '(' truth ')' '{'
                 {
-                    return handle_conditional($_[2], $_[4]);
-                    # "elif $_[4]:"
+                    return handle_truth($_[2], $_[4]);
                 }
             | '}' ELSE '{' { "else:"; }
-            ;
-
-expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
-            | expr BW_BINARY_OP expr { "$_[1] $_[2] $_[3]" }
-            | BW_UNARY_OP expr
-            | expr RANGE expr
-                {
-                    my $start = $_[1];
-                    my $end = $_[3];
-                    return handle_range($start, $end);
-                }
-            | var
-            | string
-            | NUMBER
             ;
 
 truth_op    : LOG_OP
@@ -167,27 +221,24 @@ truth       : expr
             | NOT truth { "not $_[2]" }
             ;
 
-loop        : LOOP_TYPE '(' truth ')' '{' { "$_[1] $_[3]:" }
-            | LOOP_TYPE var '(' expr ')' '{'
-                {
-                    my $iterator = $_[2];
-                    my $iterable = $_[4];
-                    "for $iterator in $iterable:";
-                }
-            | LOOP_TYPE '(' assignment ')' '{' # var = read_op
-                {
-                    my $assn = $_[3];
-                    return handle_input_loop($assn);
-                }
-            ;
-
-chomp       : CHOMP
-            | CHOMP var { return handle_chomp($_[2]); }
+regex       : var MATCH_OP MATCH { print "blah\n"; return handle_re($_[1],
+$_[3]); }
+            | var MATCH_OP SUBS { return handle_re($_[1], $_[3]); }
             ;
 
 var         : VAR { return handle_var($_[1]); }
-            | VAR INDEX
+            | MY VAR { return handle_var($_[2]); }
             ;
+
+# Lines with little functional effect
+comment     : COMMENT
+            | WHITESPACE comment { "$_[1]$_[2]"; }
+            ;
+
+no_line     : '}'
+            | WHITESPACE no_line
+            ;
+
 %%
 
 # These subroutines are used to translate each line
@@ -231,38 +282,62 @@ sub handle_print {
         $arg =~ s{\\n\s*"\s*$}{"}g; # remove  \n in \n"
     }
 
-    # vars that don't need type inference
-    # print ($var) || print ""
-    if ($arg =~ /^([^"]*)$/ || $arg =~ /^"?(\$[^\s\"]*)"?$/) {
-        $arg = handle_var($1);
-        $arg =~ s{\$}{}g;
-    } else {
-        my @components = split(/\s+/, $arg);
-        my @vars;
-        foreach my $component (@components) {
-            if ($component =~ /(\$\w+)/) {
-                my $replace = "%s";
-                my $type = $sym_type_tab{$1};
-                if ($type eq _INT) {
-                    $replace = "%d";
-                } elsif ($type eq _FLOAT) {
-                    $replace = "%f";
-                }
-                $component =~ s{\$(\w+)}{$replace}g;
-                push @vars, $1;
+    # split by CONCATENATE operator
+    my @strings = split(/\s+\+\s+/, $arg);
+    for my $string (@strings) {
+        # simple lone vars
+        # E.g. print ($var) ==> print var
+        #      print "$var" ==> print var
+        if ($string =~ m{^\(?([^"]*)(\[.*\])?\)?$} || $string =~ m{^"?(\$\w+)(\[.*\])?"?$}) {
+            my $original_var = $1;
+            my $var_replace = handle_var($original_var);
+            $string =~ s{$original_var}{$var_replace}e;
+            if (exists $sym_type_tab{$original_var} && $sym_type_tab{$original_var} ne _STRING) {
+                my $cast_replace = "str($var_replace)";
+                $string =~ s{\Q$var_replace}{$cast_replace}e;
             }
-        }
-        $arg = join(' ', @components);
-        if (@vars) {
-            my @str_format = join(', ', @vars);
-            if (scalar @vars > 1) {
-                $arg .= " % (@str_format)";
-            } else {
-                $arg .= " % @str_format";
+            $string =~ s{^"}{}g;
+            $string =~ s{"$}{}g;
+        # strings with vars and words
+        # E.g. print "$num bats"
+        } else {
+            # iterate and test if this is a string that needs formatting
+            # E.g. "Aardvark $b $c Dog\n" => "Aardvark %s %s Dog"
+            my @components = split(/\s+/, $string);
+            # to store modified components in
+            my @new_components = ();
+            my @vars;
+            foreach my $component (@components) {
+                # format any var components
+                if ($component =~ m{(\$\{?\w+)\}?}) {
+                    my $replace = "%s";
+                    if (exists $sym_type_tab{$1}) {
+                        my $type = $sym_type_tab{$1};
+                        if ($type eq _INT) {
+                            $replace = "%d";
+                        } elsif ($type eq _FLOAT) {
+                            $replace = "%f";
+                        }
+                    }
+                    $component =~ s{\$(\w+)}{$replace}g;
+                    push @vars, $1;
+                }
+            }
+            $string = join(' ', @components);
+            if (@vars) {
+                my @str_format = join(', ', @vars);
+                if (scalar @vars > 1) {
+                    $string .= " % (@str_format)";
+                } else {
+                    $string .= " % @str_format";
+                }
             }
         }
     }
+    $arg = join(' + ', @strings);
 
+    # trim any empty strings
+    $arg =~ s{\s*\+\s*""}{}g;
     if ($has_new_line == 0) {
         $arg .= ", end=\"\"";
     }
@@ -273,19 +348,25 @@ sub handle_print {
 sub infer_type {
     my ($var) = @_;
     if (exists $sym_tab{$var}) {
+        # this var is assigned to ANOTHER var, so check that type
+        if ($sym_tab{$var} =~ m{(\$\w+)}) {
+            if (exists $sym_type_tab{$1}) {
+                return $sym_type_tab{$1};
+            }
+        }
         if ($sym_tab{$var} =~ m{^\d+$}) {
             return _INT;
         } elsif ($sym_tab{$var} =~ m{^\d*\.\d+$}) {
             return _FLOAT;
         }
-    } elsif ($var =~ m{^\d+$}) {
+    } elsif ($var =~ m{^\d+$} || $var =~ m{^\$\#}) {
         return _INT;
     }
     return _STRING;
 }
 
 sub handle_read_op {
-    my $read_op = $_[0];
+    my ($read_op) = @_;
     if (exists $syntax_lookup{"<$read_op>"}) {
         return $syntax_lookup{"<$read_op>"};
     }
@@ -293,8 +374,13 @@ sub handle_read_op {
 }
 
 sub handle_chomp {
-    my $var = $_[0];
+    my ($var) = @_;
     return "$var = $var.rstrip()";
+}
+
+sub handle_loop {
+    my ($iterator, $iterable) = @_;
+    return "for $iterator in $iterable:";
 }
 
 sub handle_var {
@@ -303,8 +389,17 @@ sub handle_var {
         return $syntax_lookup{$pl_syntax} if $var =~ m{\Q$pl_syntax};
     }
     if ($var =~ m{\$ARGV\[(.*)\]}) {
-        return "sys.argv[$1 + 1]"; #move over as in py, argv[0] is filename
+        return "sys.argv[$1+1]"; # offset by 1 as in py, argv[0] is filename
     }
+    # convert index ranges
+    if ($var =~ m{\[(.*)\.\.(.*)\]}) {
+        $var =~ s{\[.*\]}{\[$1:$2\]};
+    }
+    # remove whitespace so the addition is not treated
+    # as a concatenation
+    # E.g. $arr[a + 1] => $arr[a+1]
+    $var =~ s{\s}{}g;
+    $var =~ tr{\{\}}{\[\]};
     return "$var";
 }
 
@@ -318,11 +413,17 @@ sub handle_crement {
 }
 
 sub handle_assignment {
-    my ($var, $expr) = @_;
-    $sym_tab{$var} = $expr;
-    $sym_type_tab{$var} = infer_type($var);
+    my ($var, $val) = @_;
+    if ($var =~ m{^\$}) {
+        $sym_tab{$var} = $val;
+        $sym_type_tab{$var} = infer_type($var);
+    } elsif ($var =~ m{^@}) {
+        $val = "[$val]";
+    } elsif ($var =~ m{^%}) {
+        $val = "{$val}";
+    }
     $last_assignment{$var} = $curr_line_num;
-    return "$var = $expr";
+    return "$var = $val";
 }
 
 sub handle_range {
@@ -380,15 +481,24 @@ sub handle_open {
 }
 
 
-sub handle_conditional {
+sub handle_truth {
     my ($type, $truth) = @_;
     $type =~ s{elsif}{elif};
-    my @truth_exprs = split(/\s(<=|>=|>|<|==|!=|eq|ne|and|or)\s/, $truth);
-    if ($truth_exprs[0] =~ m{^(\$\w+)}) {
+    my @truth_exprs = split(/\s(<=|>=|>|<|==|!=|eq|ne|and|or|\&|\^|\||<<|>>|~)\s/,
+       $truth);
+    my $expr1 = $truth_exprs[0];
+    my $expr2 = $truth_exprs[2];
+    if ($expr1 =~ m{^(\$\w+)$}) {
         # capture only the variable, i.e. only ($var) + 3
-        if ($sym_type_tab{$1} eq _STRING && infer_type
-            ($truth_exprs
-            [2]) ne _STRING) {
+        if (exists $sym_type_tab{$1} && $sym_type_tab{$1} eq _STRING &&
+            infer_type($expr2) ne _STRING) {
+            cast_assignment($1, _FLOAT);
+        }
+    }
+    if ($expr2 =~ m{^(\$\w+)$}) {
+        # capture only the variable, i.e. only ($var) + 3
+        if (exists $sym_type_tab{$1} && $sym_type_tab{$1} eq _STRING &&
+            infer_type($expr1) ne _STRING) {
             cast_assignment($1, _FLOAT);
         }
     }
@@ -406,6 +516,15 @@ sub handle_truth_op {
     return "$expr1 $op $expr2";
 }
 
+sub handle_concat {
+    my ($str1, $concat, $str2) = @_;
+    if ($concat =~ m{^\.=$}) {
+        return handle_assignment($str1, "$str1 + $str2");
+    }
+    return "$str1 + $str2";
+}
+
+
 sub cast_assignment {
     my ($var, $typecast) = @_;
     my $assn = $py_code[$last_assignment{$var}];
@@ -417,9 +536,11 @@ sub cast_assignment {
     chomp $components[1];
     my $cast_value = $components[1];
     # only cast the value if it is ambiguous
-    # here we assume that a longer expression means
-    # it contains an operator that makes the type clear -
-    # e.g. + - * / and so on ...
+    # here we assume that a multi word expression
+    # must contains an operator such that it is
+    # either clear or the variables involved have
+    # already been typecasted previously
+    # E.g. $var = $a + 10
     unless ($cast_value =~ m{^\S*$}) {
         return;
     }
@@ -432,11 +553,31 @@ sub cast_assignment {
     $py_code[$last_assignment{$var}] = "$assn";
 }
 
-sub do_imports {
-    my $line = $_[0];
+sub do_imports_and_clean_vars {
+    my ($line) = @_;
+    # import any module return "$var = [$vals]";
     if ($line =~ m{(sys|fileinput|re)\.}) {
         unless (exists $imports{$1} && $imports{$1} == 1) {
             $imports{$1} = 1;
         }
     }
+    my @components = split(/(?<=["'])/, $line);
+    my $index = 0;
+    for my $component (@components) {
+        # every second component is a string
+        # so only substitute $/@/% if its
+        # not a string
+        if ($index % 2 == 0) {
+            $component =~ s{[\$@]}{}g;
+            # don't remove modulo operators
+            # E.g. %tab => tab
+            #      a % b does not change
+            if ($component =~ m{(%\w+)}) {
+                $component =~ s{%}{}g;
+            }
+        }
+        $index++;
+    }
+    $line = join('', @components);
+    return $line;
 }

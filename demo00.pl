@@ -1,45 +1,42 @@
 #!/usr/bin/perl -w
 
+$answer = "The answer to everything";
 $a = 2;
 $b = 18;
-
+$c = 40;
+# PlPy can handle combined truth conditions in various scenarios
 if ( ($a == 2 && $b == 1) || ($a < 5 && !($b == 0)) ) {
-	$c = $a + 40;
-	print $c, "\n";
+    $c = $a + $c;
+    # and also make type inferences based on assignment
+    # -- even if there is the assignment actually
+    # contains other variables
+    print "$answer is = $c\n";
 }
 
-$i = 0;
-while ($i < 5) {
-	$i++;
-	if ($i == 3) {
-		last;
-	}
-}
-print $i, "\n";
+# PlPy handles post-fix (in|de)crement operators
+# and last conditions
+$a = 0;
+while ($a < 10) {
+    $a++;
+    print "Counting to 10: $a\n";
 
-while ($i < 10) {
-	print "Counting ...\n";
-	$i++;
-	if ($i > 6) {
-		next;
-	}
-	print "Only print me three times.\n";
+    if ($a > 3) {
+        next;
+    }
+    print "(Only print me three times.)\n";
 }
 
-print $i, "\n";
-
-while ($i > 0) {
-	$i--;
-	print $i, "\n";
+while ($a > 0) {
+    $a--;
+    # PlPy also handles string concatenation
+    print "Counting down to 0 again: " . $a . "\n";
 }
-print "Does this work now?\n";
 
-@arr = (10, 20, 30);
+# and arrays which can have various types
+@arr = (10, 20, $c);
 foreach $num (@arr) {
     print $num, "\n";
-    if ($num == 8) {
-         print "Hello";
-    }
 }
-print "Does this still work?\n";
-#this = sys.test;
+
+# PlPy handles exit and any imports that are required
+exit;
