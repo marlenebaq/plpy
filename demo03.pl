@@ -27,7 +27,7 @@ while (1) {
         chomp $unsh_entry;
         unshift (@arr, $unsh_entry);
     } elsif ($entry !~ m/^\d+$/) {
-        die "Please enter a number or a command (pop, shift, done)\n";
+        die "Usage: Please enter a number or a command (pop, shift, done)\n";
     } else {
         push (@arr, $entry);
     }

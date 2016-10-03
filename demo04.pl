@@ -2,6 +2,8 @@
 
 # Demo reading from command line arguments
 # and many nested statements
+my $invert = 0;
+
 unless ($#ARGV > 0) {
     die "Please enter a number as a command line argument.";
 } elsif ($#ARGV == 2 && $ARGV[1] eq "-i") {
@@ -9,7 +11,6 @@ unless ($#ARGV > 0) {
 }
 
 my $size = $ARGV[0];
-my $invert = 0;
 
 my $i = 0;
 while ($i < $size) {
