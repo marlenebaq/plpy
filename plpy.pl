@@ -101,7 +101,7 @@ sub lex {
     $$lineData =~ s{^\s*(unshift\s*)}{} and return ("UNSHIFT", $1);
     $$lineData =~ s{^\s*(reverse\s*)}{} and return ("REVERSE", $1);
     $$lineData =~ s{^\s*(keys\s*)}{} and return ("KEYS", $1);
-    $$lineData =~ s{^\s*(length\s*)}{} and return ("LEN", $1);
+    $$lineData =~ s{^\s*(length|scalar\s*)}{} and return ("LEN", $1);
     $$lineData =~ s{^\s*last}{} and return ("LAST", 0);
     $$lineData =~ s{^\s*next}{} and return ("NEXT", 0);
     $$lineData =~ s{^\s*(exit(\s*\d)*|die)}{} and return ("EXIT", $1);

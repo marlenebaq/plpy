@@ -1,13 +1,23 @@
 #!/usr/bin/perl -w
 
-# TEST 02: NESTED STATEMENTS/LOOPS
-my $a = 0;
-my $b = 0;
-my $c = 0;
-while ($a < 10) {
-	while ($b < )
+# TEST 02: REGEX/STRINGS WITH SPECIAL CHARACTERS
+my $str = "Simple \$var inside a string";
+if ($str =~ /\$\w+/) {
+	print "Matched\n";
+} else {
+	print "Not matched\n";
 }
 
-for my $key (keys %mark_tab) {
-	print "$key: $mark_tab{$key}\n";
+$str =~ s/\$/DOLLAR/;
+if ($str =~ /DOLLAR/) {
+	print "Matched\n";
+} else {
+	print "Not matched\n";
+}
+
+$str = "\$py_code[\$last_assignment_tab{\$var}] = \"\$assn\"";
+if ($str =~ /[\$@%]#?\w+([\[\{].*[\]\}])?/) {
+	print "Matched\n";
+} else {
+	print "Not matched\n";
 }

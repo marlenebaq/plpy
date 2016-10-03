@@ -20,13 +20,14 @@ print "Example: daniel 77\n";
 while (my $line = <>) {
 	chomp $line;
 	my @words = split(/ /, $line);
-	if ($#words == 1) {
+	if (scalar @words == 2) {
 		my $name = $words[0];
 		my $mark = $words[1];
 		$mark_tab{$name} = $mark;
 	} elsif ($words[0] eq "done") {
-		$exit_loop = 1;
 		last;
+	} else {
+		print "Error: Please enter a name and mark.\n";
 	}
 }
 

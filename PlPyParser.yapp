@@ -175,7 +175,7 @@ expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
 
 value       : NUMBER
             | string
-            | LEN var { "len($_[2]" }
+            | LEN var { "len($_[2])" }
             | KEYS var { "$_[2].keys()" }
             | var
             ;
@@ -299,6 +299,7 @@ my %syntax_lookup = (
     "<>" => "fileinput.input()",
     "\@ARGV" => "sys.argv[1:]",
     "\$#ARGV" => "len(sys.argv) - 1",
+    "$0" => "sys.argv[0]",
 );
 
 
@@ -535,10 +536,11 @@ sub handle_assignment {
     if ($var =~ m{^\$}) {
         $sym_tab{$var} = $val;
         $sym_type_tab{$var} = infer_type($var);
-    # Replace parentheses with the correct braces
-    # Lists can be assigned to another function,
-    # so only replace if they actually exist
-    } elsif ($var =~ m{^@} && ($val eq "" || $val =~ m{^\(.*\)$})) {
+    # Add the correct braces
+    # Lists can be assigned to the result of another
+    # function or list such as split, so don't replace
+    # if this appears to be the case...
+    } elsif ($var =~ m{^@} && ($val !~ m{^\@}) && ($val !~ m{split})) {
         $val = "[$val]";
     } elsif ($var =~ m{^%}) {
         $val = "{$val}";
