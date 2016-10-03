@@ -299,7 +299,7 @@ my %syntax_lookup = (
     "<>" => "fileinput.input()",
     "\@ARGV" => "sys.argv[1:]",
     "\$#ARGV" => "len(sys.argv) - 1",
-    "$0" => "sys.argv[0]",
+    "\$0" => "sys.argv[0]",
 );
 
 
@@ -378,7 +378,7 @@ sub handle_print {
                                 $replace = "%f";
                             }
                         }
-                        my $var = $1;
+                        my $var = handle_var($1);
                         $var =~ tr/{}/[]/;
                         $component =~ s{(\$\w+([\[\{].*[\]\}])?)}{$replace}g;
                         push @vars, $var;
