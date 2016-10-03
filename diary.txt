@@ -1,1 +1,368 @@
-10/09/15	20:00	21:04	coding	finished set01 with bad hacks
+
++-------------------------------------------+
+Date:   Tue Oct 4 01:49:16 2016 +1100
+
+    DEMOS/TESTS: Commented and slight parser modifications
+
+
++-------------------------------------------+
+Date:   Tue Oct 4 01:00:39 2016 +1100
+
+    DEMOS/TESTS: Finished
+
+
++-------------------------------------------+
+Date:   Mon Oct 3 23:34:31 2016 +1100
+
+    DEMOS/TESTS: Add more to demos and plpy
+
+
++-------------------------------------------+
+Date:   Mon Oct 3 22:32:06 2016 +1100
+
+    DEMOS/TESTS: Wrote some demos and tests, also some additions/comments to parser
+
+
++-------------------------------------------+
+Date:   Mon Oct 3 17:31:56 2016 +1100
+
+    REFACTOR: Minor refactoring
+
+
++-------------------------------------------+
+Date:   Mon Oct 3 16:59:17 2016 +1100
+
+    TEST SCRIPTS & DEMOS: partially written, added support for hashes and arrays
+
+
++-------------------------------------------+
+Date:   Mon Oct 3 10:27:19 2016 +1100
+
+    BUGFIX: Allow handling of tabs
+
+
++-------------------------------------------+
+Date:   Mon Oct 3 00:16:53 2016 +1100
+
+    SET02: Add handling for bitwise operators
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 23:08:18 2016 +1100
+
+    BUGFIX: Fixed wrong use of sym_tab_type hash
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 22:59:32 2016 +1100
+
+    SET04: All done (added default flush=True to print...)
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 22:36:34 2016 +1100
+
+    BUGFIX: Fixed bug introduced by removing whitespace after typecasting, also removed unnecessary typecasting
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 22:26:43 2016 +1100
+
+    SET04: Pass all but size.pl
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 20:24:57 2016 +1100
+
+    SET04: Fix for reading from stdin
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 20:17:25 2016 +1100
+
+    SET04: added handling for ARGV length to pass echon.l
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 16:38:40 2016 +1100
+
+    REFACTOR: Minor refactoring - remove whitespace from captures
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 15:34:18 2016 +1100
+
+    BUGFIX: More string stuff
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 13:51:35 2016 +1100
+
+    BUGFIX: Remove @ from arrays. Now passes all autotests from SET00 to
+    SET03.
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 13:48:05 2016 +1100
+
+    BUGFIX: Fix for trailing new line in print statements
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 13:36:09 2016 +1100
+
+    BUGFIX: hack to remove variable dollars
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 13:29:08 2016 +1100
+
+    BUGFIX: Type inference for variables in strings
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 12:44:30 2016 +1100
+
+    SET03: Add modulo operator to parser
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 12:41:14 2016 +1100
+
+    BUGFIX: Fix var assignment - do not evaluate variablesgit add PlPy*
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 12:36:52 2016 +1100
+
+    BUGFIX: Fix printing of variables
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 12:20:26 2016 +1100
+
+    SET03: Passed five.pl
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 12:08:16 2016 +1100
+
+    SET04: Implement better printing of expressions
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 10:37:49 2016 +1100
+
+    SET03: Minor technical fix for tetrahedral - better variable inference
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 10:16:01 2016 +1100
+
+    SET03: Fixed cookie0
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 03:20:20 2016 +1100
+
+    Fixed import statement
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 03:17:19 2016 +1100
+
+    Renamed parser files
+
+
++-------------------------------------------+
+Date:   Sun Oct 2 03:09:50 2016 +1100
+
+    Re-implemented using recursive descent parser
+
+
++-------------------------------------------+
+Date:   Mon Sep 26 04:32:06 2016 +1000
+
+    Grammar yp
+
+
++-------------------------------------------+
+Date:   Mon Sep 26 04:18:58 2016 +1000
+
+    RDP example
+
+
++-------------------------------------------+
+Date:   Mon Sep 26 00:58:25 2016 +1000
+
+    SET04: all tests passed but size.pl
+
+
++-------------------------------------------+
+Date:   Thu Sep 22 18:09:42 2016 +1000
+
+    Temp modifications
+
+
++-------------------------------------------+
+Date:   Fri Sep 16 16:38:13 2016 +1000
+
+    Tweaks for autotest script
+
+
++-------------------------------------------+
+Date:   Thu Sep 15 10:32:02 2016 +1000
+
+    Test script update
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 23:50:38 2016 +1000
+
+    TESTS: added simple shell script to automate basic testing with given examples
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 21:20:31 2016 +1000
+
+    SET03: Allow for % operator
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 21:15:47 2016 +1000
+
+    BUGFIX: Remove extra new lines and minor clean up
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 19:49:26 2016 +1000
+
+    BUGFIX: foreach for arrays and range
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 19:10:30 2016 +1000
+
+    SET03: Implement print array
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 18:57:57 2016 +1000
+
+    SET03: implementation for join as in echo.2, bugfix for comments
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 18:21:32 2016 +1000
+
+    BUGFIX: Fix regex for stdin
+
+
++-------------------------------------------+
+Date:   Mon Sep 12 18:15:41 2016 +1000
+
+    BUGFIX REGRESSION: Fix string that is only vars not surrounded by quotes
+
+
++-------------------------------------------+
+Date:   Sun Sep 11 23:26:38 2016 +1000
+
+    CLEANUP: add comments and some general cleanup
+
+
++-------------------------------------------+
+Date:   Sun Sep 11 19:29:11 2016 +1000
+
+    MAJOR REFACTOR, FIXES, TWEAKS: implemented basic handling for various
+    strings including formatted ones, basic handling for .. range
+
+
++-------------------------------------------+
+Date:   Sun Sep 11 14:31:13 2016 +1000
+
+    SET02: eq -> ==, bugfix
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 23:30:55 2016 +1000
+
+    REFACTORING/BUGFIXING, SET03: implemented read <STDIN>, minor
+    --initial-- refactoring, bugfixes for imports, eq -> ==
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 22:34:14 2016 +1000
+
+    SET03: implement --
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 22:29:14 2016 +1000
+
+    TESTING: add some initial tests
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 22:26:10 2016 +1000
+
+    BUGFIX: last\next
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 22:24:17 2016 +1000
+
+    SET03: implemented simple use of ++ and next, last
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 22:07:57 2016 +1000
+
+    SET01: bugfix for answer4 where last char was not being captured
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 21:47:02 2016 +1000
+
+    General refinement: s// bracket niceificaion -> s{}{}
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 21:39:06 2016 +1000
+
+    General refinement: allow for grouping conditionals e.g. if ((this && that) || (that && \!this)) {
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 21:30:13 2016 +1000
+
+    SET02: implement handling for logical operators
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 21:27:45 2016 +1000
+
+    SET02: implemented handlers for answer5-6, iota, but not all set2 features
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 21:05:35 2016 +1000
+
+    Diary update
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 21:03:21 2016 +1000
+
+    SET01: now passes answer0-4 but with cheap ugly hacks
+
+
++-------------------------------------------+
+Date:   Sat Sep 10 20:51:23 2016 +1000
+
+    SET1: initial set up & pass answer0-2
+
+
++-------------------------------------------+
+Date:   Sat Sep 3 18:16:15 2016 +1000
+
+    files supplied to start the assignment
