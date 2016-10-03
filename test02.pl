@@ -1,10 +1,11 @@
 #!/usr/bin/perl -w
 
-my %marks_tab = (
-	"matt", 60,
-	"marlene", 65,
-	"carol", 70,
-);
-$marks_tab{"carol"} = 75;
-print "carol: " . $marks_tab{"carol"} . "\n";
-print "matt: " . $marks_tab{"matt"} . "\n";
+my %mark_tab = ();
+while (my $line = <>) {
+	my @words = split(/\s+/, $line);
+	$mark_tab{$words[0]} = $words[1];
+}
+
+for my $key (keys %mark_tab) {
+	print "$key: $mark_tab{$key}\n";
+}

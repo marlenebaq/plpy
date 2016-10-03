@@ -1,2 +1,4 @@
 #!/usr/bin/perl -w
-# put your demo script here
+
+my @arr = ('1', '2', '3');
+push @arr, 'A';

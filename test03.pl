@@ -1,2 +1,4 @@
 #!/usr/bin/perl -w
-# put your demo script here
+
+my $str = "ABCDbEFGaHIJKLMdNdOPsQRSwTUVdWfXrYZ\n";
+print join(",", split(/[a-z]/, $str));

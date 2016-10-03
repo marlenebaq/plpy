@@ -41,10 +41,10 @@ sub lex {
 
     # preserve any meaningful WHITESPACE
     $$lineData =~ s{^(\s{4}|\t)}{} and return ("WHITESPACE", $1);
-    $$lineData =~ s{^(#.*)}{} and return ("COMMENT", $1);
+    $$lineData =~ s{^\s*(#.*)}{} and return ("COMMENT", $1);
 
     # 'fundamental' STATEMENTS
-    $$lineData =~ s{^\s*print\s*}{} and return ("PRINT", 0);
+    $$lineData =~ s{^\s*(printf?)\s*}{} and return ("PRINT", $1);
     $$lineData =~ s{^\s*(if)\s*}{} and return ("IF", $1);
     $$lineData =~ s{^\s*(elsif)\s*}{} and return ("ELSIF", $1);
     $$lineData =~ s{^\s*(else)\s*\{}}{} and return ("ELSE", $1);
@@ -62,6 +62,7 @@ sub lex {
     $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", 0);
 
     # OPERATORS & VARIABLES/NUMBERS
+    # print "$$lineData\n";
     if ($$lineData !~ m{^\s*<.*>} && $$lineData !~ m{^\s*/.*/}) {
         $$lineData =~ s{^\s*([=!]~)}{} and return ("MATCH_OP", $1);
         $$lineData =~ s{^\s*([\+-]){2}}{} and return ("CREMENT", $1);
@@ -74,34 +75,37 @@ sub lex {
         $$lineData =~ s{^\s*(\+|\-|\*|/|%|\*\*)}{} and return ("MATH_OP", $1);
         $$lineData =~ s{^\s*!}{} and return ("NOT", 0);
 
-        $$lineData =~ s{^\s*([\n=\(\)\{\}]|=>)}{} and return ($1, $1);
+        $$lineData =~ s{^\s*(=>|[\n=\(\)\{\}])}{} and return ($1, $1);
     }
 
     $$lineData =~ s{^\s*chomp}{} and return ("CHOMP", 0);
     $$lineData =~ s{^\s*<(.*)>}{} and return ("INPUT", $1);
     $$lineData =~ s{^\s*(join\s*)}{} and return ("JOIN", $1);
     $$lineData =~ s{^\s*(split\s*)}{} and return ("SPLIT", $1);
-    # TODO
+
     $$lineData =~ s{^\s*(push\s*)}{} and return ("PUSH", $1);
-    $$lineData =~ s{^\s*(pop\s*)}{} and return ("POP", $1);;
-    $$lineData =~ s{^\s*(shift\s*)}{} and return ("SHIFT", $1);;
-    $$lineData =~ s{^\s*(unshift\s*)}{} and return ("UNSHIFT", $1);;
-    $$lineData =~ s{^\s*(reverse\s*)}{} and return ("REVERSE", $1);;
+    $$lineData =~ s{^\s*(pop\s*)}{} and return ("POP", $1);
+    $$lineData =~ s{^\s*(shift\s*)}{} and return ("SHIFT", $1);
+    $$lineData =~ s{^\s*(unshift\s*)}{} and return ("UNSHIFT", $1);
+    $$lineData =~ s{^\s*(reverse\s*)}{} and return ("REVERSE", $1);
+    $$lineData =~ s{^\s*(keys\s*)}{} and return ("KEYS", $1);
+    $$lineData =~ s{^\s*(length\s*)}{} and return ("LEN", $1);
 
     $$lineData =~ s{^\s*(s/.*/.*/[a-z]*)}{} and return ("SUBS", $1);
     $$lineData =~ s{^\s*(m?/.*/)}{} and return ("MATCH", $1);
     $$lineData =~ s{^\s*last}{} and return ("LAST", 0);
     $$lineData =~ s{^\s*next}{} and return ("NEXT", 0);
-    $$lineData =~ s{^\s*exit}{} and return ("EXIT", 0);
+    $$lineData =~ s{^\s*(exit(\s*\d)*|die)}{} and return ("EXIT", $1);
     $$lineData =~ s{^\s*open\s*(\w+)}{} and return ("OPENF", $1); #
 
-    $$lineData =~ s{^\s*(\.=)}{} and return ("CONCAT_EQ", $1); # remove
-    $$lineData =~ s{^\s*(\.)}{} and return ("CONCAT", $1); # remove
-    $$lineData =~ s{^(,\h*)}{} and return ("SEPARATOR", $1); # remove
+    $$lineData =~ s{^\s*(\.=)}{} and return ("CONCAT_EQ", $1);
+    $$lineData =~ s{^\s*(\.)}{} and return ("CONCAT", $1);
+    $$lineData =~ s{^(,\h*)}{} and return ("SEPARATOR", $1);
 
     $$lineData =~ s{^\s*my\s*}{} and return ("MY", 0);
 
-    print "# \'$$lineData\' (Unknown token)\n" and die;
+    # unknown tokens/lines will be pushed as comments
+    $$lineData =~ s{^\s*(.*)}{} and return ("UNKNOWN_TOK", $1);
 }
 
 # ==> YYError (err)

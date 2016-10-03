@@ -75,74 +75,97 @@ line        : statement
 
 statement   : print_st | assignment | condition | loop
             | chomp | string_func | read_op | re_match
+            | list_func
             | OPENF SEPARATOR string
                     {
-                        return handle_open($_[1], $_[3]);
+                        handle_open($_[1], $_[3]);
                     }
-            | EXIT { return "sys.exit"; }
-            | LAST { return "break"; }
-            | NEXT { return "continue"; }
-            | WHITESPACE statement { return join('', $_[1], $_[2]); }
+            | EXIT { "sys.exit()"; }
+            | LAST { "break"; }
+            | NEXT { "continue"; }
+            | WHITESPACE statement { join('', $_[1], $_[2]); }
             ;
 
-loop        : LOOP_TYPE '(' truth ')' '{' { return handle_truth($_[1], $_[3]); }
-            | LOOP_TYPE var '(' expr ')' '{' { return handle_loop($_[2], $_[4]);
+loop        : LOOP_TYPE '(' truth ')' '{' { handle_truth($_[1], $_[3]); }
+            | LOOP_TYPE var '(' expr ')' '{' { handle_loop($_[2], $_[4]);
             }
             | LOOP_TYPE '(' assignment ')' '{'
                 {
                     my $assn = $_[3];
-                    return handle_input_loop($assn);
+                    handle_input_loop($assn);
                 }
             ;
 
 chomp       : CHOMP
-            | CHOMP var { return handle_chomp($_[2]); }
+            | CHOMP var { handle_chomp($_[2]); }
             ;
 
-string_func : JOIN '(' string SEPARATOR value ')'
-                {
-                    return "$_[3].join($_[5])";
-                }
-            | JOIN string SEPARATOR array
-                {
-                    return "$_[2].join($_[4])";
-                }
-            | JOIN '(' string SEPARATOR array ')'
-                {
-                    return "$_[3].join($_[5])";
-                }
+string_func : JOIN '(' string SEPARATOR join_expr ')' { "$_[3].join($_[5])"; }
+            | JOIN string SEPARATOR join_expr { "$_[2].join($_[4])"; }
             | SPLIT MATCH SEPARATOR value
                 {
-                    return "$_[4].split('$_[2]')";
+                    my $regex = $_[2];
+                    $regex =~ tr/\//'/;
+                    "$_[4].split($regex)";
                 }
             | SPLIT '(' MATCH SEPARATOR value ')'
                 {
-                    return "$_[5].split('$_[3]')";
+                    my $regex = $_[3];
+                    $regex =~ tr/\//'/;
+                    "$_[5].split($regex)";
                 }
             ;
 
-print_st    : PRINT print_arg
-                {
-                    my $args = $_[2];
-                    return handle_print($args);
-                }
+join_expr   : '(' list ')'
+            | value
+            | string_func
+            ;
+
+print_st    : PRINT print_arg { handle_print($_[1], $_[2]); }
+            | EXIT print_arg { handle_print($_[1], $_[2]); }
             ;
 
 print_arg   : expr
+            | string_func
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
 
 string      : EMPTY_STRING
             | SENTENCE
-            | value CONCAT value { return handle_concat($_[1], $_
+            | value CONCAT value { handle_concat($_[1], $_
                 [2], $_[3]); }
             ;
 
-array       : value { "$_[1]"; }
+list        : value { "$_[1]"; }
             | value SEPARATOR { "$_[1]$_[2]"; }
-            | array value { "$_[1]$_[2]"; }
-            | array value SEPARATOR { "$_[1]$_[2]$_[3]"; }
+            | list value { "$_[1]$_[2]"; }
+            | list value SEPARATOR { "$_[1]$_[2]$_[3]"; }
+            ;
+
+list_func   : PUSH '(' var SEPARATOR '(' list ')' ')'
+                    { handle_list_func($_[1], $_[3], $_[6]); }
+            | PUSH '(' var SEPARATOR value ')'
+                    { handle_list_func($_[1], $_[3], $_[5]); }
+            | PUSH var SEPARATOR '(' list ')'
+                    { handle_list_func($_[1], $_[2], $_[5]); }
+            | PUSH var SEPARATOR value
+                    { handle_list_func($_[1], $_[2], $_[4]); }
+            | POP '(' var ')' { handle_list_func($_[1], $_[3], undef); }
+            | POP var { handle_list_func($_[1], $_[2], undef); }
+            | UNSHIFT '(' var SEPARATOR '(' list ')' ')'
+                    { handle_list_func($_[1], $_[4], $_[6]); }
+            | UNSHIFT '(' var SEPARATOR value ')'
+                    { handle_list_func($_[1], $_[4], $_[5]); }
+            | UNSHIFT var SEPARATOR '(' list ')'
+                    { handle_list_func($_[1], $_[2], $_[4]); }
+            | UNSHIFT var SEPARATOR value
+                    { handle_list_func($_[1], $_[2], $_[4]); }
+            | SHIFT '(' var ')'
+                    { handle_list_func($_[1], $_[3], undef); }
+            | SHIFT var
+                    { handle_list_func($_[1], $_[2], undef); }
+            | REVERSE var { handle_list_func($_[1], $_[2], undef); }
             ;
 
 expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
@@ -152,14 +175,15 @@ expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
                 {
                     my $start = $_[1];
                     my $end = $_[3];
-                    return handle_range($start, $end);
+                    handle_range($start, $end);
                 }
-            | string_func
             | value
             ;
 
 value       : NUMBER
             | string
+            | LEN var { "len($_[2]" }
+            | KEYS var { "$_[2].keys()" }
             | var
             ;
 
@@ -173,41 +197,49 @@ hash        : hash_line
 
 assignment  : var '=' expr
                 {
-                    return handle_assignment($_[1], $_[3]);
+                    handle_assignment($_[1], $_[3]);
                 }
             | var '=' input
                 {
-                    return handle_assignment($_[1], $_[3]);
+                    handle_assignment($_[1], $_[3]);
                 }
-            | var '=' '(' array ')'
+            | var '=' '(' list ')'
                 {
-                    return handle_assignment($_[1], $_[4]);
+                    handle_assignment($_[1], $_[4]);
                 }
             | var '=' '(' '\n' hash ')'
                 {
-                    return handle_assignment($_[1], $_[5]);
+                    handle_assignment($_[1], $_[5]);
                 }
-            | var CONCAT_EQ value { return handle_concat($_[1], $_[2], $_[3]); }
+            | var '=' '(' ')'
+                {
+                    handle_assignment($_[1], "");
+                }
+            | var '=' string_func
+                {
+                    handle_assignment($_[1], $_[3]);
+                }
+            | var CONCAT_EQ value { handle_concat($_[1], $_[2], $_[3]); }
             | var CREMENT
                 {
-                    return handle_crement($_[1], $_[2]);
+                    handle_crement($_[1], $_[2]);
                 }
             ;
 
 input       : INPUT
                 {
                     my $read_op = $_[1];
-                    return handle_read_op($read_op);
+                    handle_read_op($read_op);
                 }
             ;
 
 condition   : IF '(' truth ')' '{'
                 {
-                    return handle_truth($_[1], $_[3]);
+                    handle_truth($_[1], $_[3]);
                 }
             | '}' ELSIF '(' truth ')' '{'
                 {
-                    return handle_truth($_[2], $_[4]);
+                    handle_truth($_[2], $_[4]);
                 }
             | '}' ELSE '{' { "else:"; }
             ;
@@ -217,14 +249,12 @@ truth_op    : LOG_OP
             ;
 
 truth       : expr
+            | re_match
             | truth truth_op truth
                 {
-                    return handle_truth_op($_[1], $_[2], $_[3]);
+                    handle_truth_op($_[1], $_[2], $_[3]);
                 }
-            | '(' truth ')'
-                {
-                    return "($_[2])";
-                }
+            | '(' truth ')' { "($_[2])" }
             | NOT truth { "not $_[2]" }
             ;
 
@@ -232,11 +262,11 @@ regex       : MATCH
             | SUBS
             ;
 
-re_match    : var MATCH_OP regex { return handle_re($_[1], $_[3]); }
+re_match    : var MATCH_OP regex { handle_re($_[1], $_[2], $_[3]); }
             ;
 
-var         : VAR { return handle_var($_[1]); }
-            | MY VAR { return handle_var($_[2]); }
+var         : VAR { handle_var($_[1]); }
+            | MY VAR { handle_var($_[2]); }
             ;
 
 # Lines with little functional effect
@@ -250,8 +280,22 @@ no_line     : '}'
 
 %%
 
-# These subroutines are used to translate each line
+# These subroutines are used for manipulating
+# and reproducing perl lines and python lines
 
+# Some of them handle tokens, for example vars,
+# and return a reformatted token which may later
+# be used again by another handler
+
+# E.g. given the line "my $args = @ARGV;"
+# 1) 'my' is ignored
+# 2) $args => $args through handle_var
+# 3) @ARGV => sys.argv[1:] through handle_var
+#   2) and 3) are returned to handle_assignment
+# 4)       ==> $args = sys.argv[1:] through handle_assignment
+
+# constants used for keeping track of var types
+# used mostly for typecasting
 use constant {
     _INT => "int",
     _FLOAT => "float",
@@ -262,11 +306,14 @@ my %syntax_lookup = (
     "<STDIN>" => "sys.stdin.readline()",
     "<>" => "fileinput.input()",
     "\@ARGV" => "sys.argv[1:]",
-    "\$#ARGV" => "len(sys.argv) - 1", # $#ARGV is the last index, len is the
+    "\$#ARGV" => "len(sys.argv) - 1",
 );
 
+
+# When EOF is reached, print Python code
 sub print_py {
     my @modules;
+    # first prepend the modules as a single import header
     foreach my $module (keys %imports ){
         push @modules, $module;
     }
@@ -279,81 +326,116 @@ sub print_py {
     }
 }
 
+
+
 sub handle_print {
-    my ($arg) = @_;
+    my ($print_tok, $arg) = @_;
     my $has_new_line = 0;
 
-    # remove only trailing new lines
-    # i.e. print "Hello\nWorld"; is passable
-    if ($arg =~ m{\\n"\s*$}) {
-        $has_new_line = 1;
-        $arg =~ s{,\s*"\\n"\s*$}{}g; # remove , "\n"
-        $arg =~ s{\\n\s*"\s*$}{"}g; # remove  \n in \n"
-    }
+    # PRINT
+    if ($print_tok eq "print") {
+        # remove only trailing new lines
+        # i.e. print "Hello\nWorld"; is passable
+        if ($arg =~ m{\\n"\s*$}) {
+            $has_new_line = 1;
+            $arg =~ s{,\s*"\\n"\s*$}{}g; # remove , "\n"
+            $arg =~ s{\\n\s*"\s*$}{"}g; # remove  \n in \n"
+        }
 
-    # split by CONCATENATE operator
-    my @strings = split(/\s+\+\s+/, $arg);
-    for my $string (@strings) {
-        # simple lone vars
-        # E.g. print ($var) ==> print var
-        #      print "$var" ==> print var
-        if ($string =~ m{^\(?([^"]*)(\[.*\])?\)?$} || $string =~ m{^"?(\$\w+)(\[.*\])?"?$}) {
-            my $original_var = $1;
-            my $var_replace = handle_var($original_var);
-            $string =~ s{$original_var}{$var_replace}e;
-            if (exists $sym_type_tab{$original_var} && $sym_type_tab{$original_var} ne _STRING) {
-                my $cast_replace = "str($var_replace)";
-                $string =~ s{\Q$var_replace}{$cast_replace}e;
-            }
-            $string =~ s{^"}{}g;
-            $string =~ s{"$}{}g;
-        # strings with vars and words
-        # E.g. print "$num bats"
-        } else {
-            # iterate and test if this is a string that needs formatting
-            # E.g. "Aardvark $b $c Dog\n" => "Aardvark %s %s Dog"
-            my @components = split(/\s+/, $string);
-            # to store modified components in
-            my @new_components = ();
-            my @vars;
-            foreach my $component (@components) {
-                # format any var components
-                if ($component =~ m{(\$\{?\w+)\}?}) {
-                    my $replace = "%s";
-                    if (exists $sym_type_tab{$1}) {
-                        my $type = $sym_type_tab{$1};
-                        if ($type eq _INT) {
-                            $replace = "%d";
-                        } elsif ($type eq _FLOAT) {
-                            $replace = "%f";
-                        }
-                    }
-                    $component =~ s{\$(\w+)}{$replace}g;
-                    push @vars, $1;
+        # split by CONCATENATE operator
+        my @strings = split(/\s+\+\s+/, $arg);
+        for my $string (@strings) {
+            # simple lone vars
+            # E.g. print ($var) ==> print var
+            #      print "$var" ==> print var
+            if ($string =~ m{^\(?([^"]*)(\[.*\])?\)?$} || $string =~ m{^"?(\$\w+)(\[.*\])?"?$}) {
+                my $original_var = $1;
+                my $var_replace = handle_var($original_var);
+                $string =~ s{$original_var}{$var_replace}e;
+                if (exists $sym_type_tab{$original_var} && $sym_type_tab{$original_var} ne _STRING) {
+                    my $cast_replace = "str($var_replace)";
+                    $string =~ s{\Q$var_replace}{$cast_replace}e;
                 }
-            }
-            $string = join(' ', @components);
-            if (@vars) {
-                my @str_format = join(', ', @vars);
-                if (scalar @vars > 1) {
-                    $string .= " % (@str_format)";
-                } else {
-                    $string .= " % @str_format";
+                $string =~ s{^"}{}g;
+                $string =~ s{"$}{}g;
+            # strings with vars and words
+            # E.g. print "$num bats"
+            } else {
+                # iterate and test if this is a string that needs formatting
+                # E.g. "Aardvark $b $c Dog\n" => "Aardvark %s %s Dog"
+                my @components = split(/\s+/, $string);
+                # to store modified components in
+                my @new_components = ();
+                my @vars;
+                foreach my $component (@components) {
+                    # format any var components
+                    if ($component =~ m{(\$\w+([\[\{].*[\]\}])?)}) {
+                        my $replace = "%s";
+                        if (exists $sym_type_tab{$1}) {
+                            my $type = $sym_type_tab{$1};
+                            if ($type eq _INT) {
+                                $replace = "%d";
+                            } elsif ($type eq _FLOAT) {
+                                $replace = "%f";
+                            }
+                        }
+                        my $var = $1;
+                        $var =~ tr/{}/[]/;
+                        $component =~ s{(\$\w+([\[\{].*[\]\}])?)}{$replace}g;
+                        push @vars, $var;
+                    }
+                }
+                $string = join(' ', @components);
+                if (@vars) {
+                    my @str_format = join(', ', @vars);
+                    if (scalar @vars > 1) {
+                        $string .= " % (@str_format)";
+                    } else {
+                        $string .= " % @str_format";
+                    }
                 }
             }
         }
+        $arg = join(' + ', @strings);
+        # trim any empty strings
+        $arg =~ s{\s*\+\s*""}{}g;
+    # PRINTF (very similar to Python, minimal change)
+    } elsif ($print_tok eq "printf") {
+        if ($arg =~ m{\\n"\s*}) {
+            $has_new_line = 1;
+            $arg =~ s{,\s*"\\n"\s*$}{}g; # remove , "\n"
+            $arg =~ s{\\n\s*"\s*$}{"}g; # remove  \n in \n"
+        }
+        # insert % to indicate the format vars
+        $arg =~ s{",\s*}{" % };
+    # DIE has an option to provide a message, so
+    # just turn this into an exit statement
+    # and a print statement
+    } elsif ($print_tok eq "die") {
+        # deduce the indentation based off a previous line...
+        my $whitespace = "";
+        if ($py_code[$curr_line_num-1] =~ m{(^\s*).}) {
+            $whitespace .= $1;
+            if ($py_code[$curr_line_num-1] =~ m{:$}) {
+                $whitespace .= "    ";
+            }
+        }
+        return "print($arg)\n${whitespace}sys.exit()";
     }
-    $arg = join(' + ', @strings);
-
-    # trim any empty strings
-    $arg =~ s{\s*\+\s*""}{}g;
     if ($has_new_line == 0) {
         $arg .= ", end=\"\"";
     }
+    # prevent the issue of a prompt not being written to
+    # STDOUT before reading STDIN
     $arg .= ", flush=True";
     return "print($arg)";
 }
 
+
+# Used during initial assignment, but also when a variable
+# is used in a truth so we can find out whether or not we
+# should have cast the variable in order to avoid Python
+# specific errors
 sub infer_type {
     my ($var) = @_;
     if (exists $sym_tab{$var}) {
@@ -374,6 +456,8 @@ sub infer_type {
     return _STRING;
 }
 
+
+# <STDIN>, <>
 sub handle_read_op {
     my ($read_op) = @_;
     if (exists $syntax_lookup{"<$read_op>"}) {
@@ -382,16 +466,22 @@ sub handle_read_op {
     return "$read_op";
 }
 
+
+# Only handles chomp $var
 sub handle_chomp {
     my ($var) = @_;
     return "$var = $var.rstrip()";
 }
+
 
 sub handle_loop {
     my ($iterator, $iterable) = @_;
     return "for $iterator in $iterable:";
 }
 
+
+# Does substitutions for variables that have a direct
+# translation in Python
 sub handle_var {
     my $var = $_[0];
     for my $pl_syntax (keys %syntax_lookup) {
@@ -403,15 +493,29 @@ sub handle_var {
     # convert index ranges
     if ($var =~ m{\[(.*)\.\.(.*)\]}) {
         $var =~ s{\[.*\]}{\[$1:$2\]};
+    # if it is not clear that an index is an integer, try
+    # typecasting it
+    } elsif ($var =~ m{\[(.*)\]$}) {
+        if (infer_type($1) ne _INT) {
+            my $replace = "int($1)";
+            $var =~ s{\Q$1}{$replace}e;
+        }
+    }
+    # index is the number of the last element, which starts from 0
+    # so offset the length by 1 for this number
+    if ($var =~ m{^\$#(\w+)}) {
+        $var = "len($1)-1";
     }
     # remove whitespace so the addition is not treated
     # as a concatenation
     # E.g. $arr[a + 1] => $arr[a+1]
     $var =~ s{\s}{}g;
-    $var =~ tr{\{\}}{\[\]};
+    $var =~ tr/{}/[]/;
     return "$var";
 }
 
+
+# ++, --
 sub handle_crement {
     my ($var, $crement) = @_;
     my $expr = "$var - 1";
@@ -421,19 +525,28 @@ sub handle_crement {
     return handle_assignment($var, $expr);
 }
 
+
+# Does some basic type inference and updates
+# a hash to track when a var was last assigned
+# (for typecasting purposes)
+# Also does simple bracket substitutions for
+# arrays and hashes
 sub handle_assignment {
     my ($var, $val) = @_;
+    # for empty declarations
+    # E.g. [], ()
     if ($var =~ m{^\$}) {
         $sym_tab{$var} = $val;
         $sym_type_tab{$var} = infer_type($var);
-    } elsif ($var =~ m{^@}) {
+    } elsif ($var =~ m{^@} && ($val eq "" || $val =~ m{^\(.*\)$})) {
         $val = "[$val]";
-    } elsif ($var =~ m{^%}) {
+    } elsif ($var =~ m{^%} && ($val eq "" || $val =~ m{^\(.*\)$})) {
         $val = "{$val}";
     }
     $last_assignment{$var} = $curr_line_num;
     return "$var = $val";
 }
+
 
 sub handle_range {
     my ($start, $end) = @_;
@@ -457,6 +570,7 @@ sub handle_range {
     return "range($start, $end)" ;
 }
 
+
 sub handle_input_loop {
     my ($assn) = @_;
     my @components = split(/\s+/, $assn);
@@ -469,23 +583,20 @@ sub handle_input_loop {
     return "for $iterator in $iterable:";
 }
 
-sub handle_re {
-    my ($var, $re) = @_;
-    if ($re =~ m{s/(.*)/(.*)/}) {
-        return "$var = re.sub(r'$1', '$2', $var)";
-    } elsif ($re =~ m{m?/(.*)/}) {
-        return "$var = re.match(r'$1', $var)";
-    }
-    # should never be the case, just a fail safe
-    return "$var = re.match(r'$re', $var)";
-}
 
-# this assumes read only mode ALWAYS
-sub handle_open {
-    my ($fh, $fname) = @_;
-    # use only fname from "<fname"
-    $fname =~ s{["<]}{}g;
-    return "$fh = open(\"$fname\")";
+sub handle_re {
+    my ($var, $op, $re) = @_;
+    my $re_str = "$var = re.search(r'$re', $var)";
+    if ($re =~ m{s/(.*)/(.*)/}) {
+        $re_str = "$var = re.sub(r'$1', '$2', $var)";
+    } elsif ($re =~ m{m?/(.*)/}) {
+        $re_str = "";
+        if ($op eq "!~") {
+            $re_str .= "not ";
+        }
+        $re_str .= "re.match(r'$1', $var)";
+    }
+    return $re_str;
 }
 
 
@@ -518,6 +629,7 @@ sub handle_truth {
     return ("$type $truth:");
 }
 
+
 sub handle_truth_op {
     my ($expr1, $op, $expr2) = @_;
     $op =~ s{ne}{!=};
@@ -526,6 +638,7 @@ sub handle_truth_op {
     $op =~ s{\|\|}{or};
     return "$expr1 $op $expr2";
 }
+
 
 sub handle_concat {
     my ($str1, $concat, $str2) = @_;
@@ -536,6 +649,32 @@ sub handle_concat {
 }
 
 
+sub handle_list_func {
+    my ($func_type, $list, $elements) = @_;
+    if ($func_type =~ m{^pop}) {
+        return "$list.pop()";
+    } elsif ($func_type =~ m{^shift}) {
+        return "$list.pop(0)";
+    } elsif ($func_type =~ m{^unshift}) {
+        return "$list.insert(0, $elements)";
+    } elsif ($func_type =~ m{^reverse}) {
+        return "$list.reverse()";
+    }
+    # PUSH
+    return "$list.append($elements)";
+}
+
+
+sub handle_open {
+    my ($fh, $fname) = @_;
+    # use only fname from "<fname"
+    $fname =~ s{["<]}{}g;
+    return "$fh = open(\"$fname\")";
+}
+
+
+# Does basic typecasting by looking back to
+# the last assignment of the var
 sub cast_assignment {
     my ($var, $typecast) = @_;
     my $assn = $py_code[$last_assignment{$var}];
@@ -566,6 +705,8 @@ sub cast_assignment {
     $py_code[$last_assignment{$var}] = "$assn";
 }
 
+
+# Import modules and remove @, $, % from vars
 sub do_imports_and_clean_vars {
     my ($line) = @_;
     # import any module return "$var = [$vals]";
