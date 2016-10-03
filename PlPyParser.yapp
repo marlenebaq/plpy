@@ -74,7 +74,7 @@ line        : statement
             ;
 
 statement   : print_st | assignment | condition | loop
-            | chomp | string_func | read_op | regex
+            | chomp | string_func | read_op | re_match
             | OPENF SEPARATOR string
                     {
                         return handle_open($_[1], $_[3]);
@@ -103,9 +103,17 @@ string_func : JOIN '(' string SEPARATOR value ')'
                 {
                     return "$_[3].join($_[5])";
                 }
+            | JOIN string SEPARATOR array
+                {
+                    return "$_[2].join($_[4])";
+                }
             | JOIN '(' string SEPARATOR array ')'
                 {
                     return "$_[3].join($_[5])";
+                }
+            | SPLIT MATCH SEPARATOR value
+                {
+                    return "$_[4].split('$_[2]')";
                 }
             | SPLIT '(' MATCH SEPARATOR value ')'
                 {
@@ -121,8 +129,6 @@ print_st    : PRINT print_arg
             ;
 
 print_arg   : expr
-            | string_func
-            | print_arg SEPARATOR string_func { "$_[1], $_[3]"; }
             | print_arg SEPARATOR expr { "$_[1], $_[3]"; }
             ;
 
@@ -148,6 +154,7 @@ expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
                     my $end = $_[3];
                     return handle_range($start, $end);
                 }
+            | string_func
             | value
             ;
 
@@ -221,9 +228,11 @@ truth       : expr
             | NOT truth { "not $_[2]" }
             ;
 
-regex       : var MATCH_OP MATCH { print "blah\n"; return handle_re($_[1],
-$_[3]); }
-            | var MATCH_OP SUBS { return handle_re($_[1], $_[3]); }
+regex       : MATCH
+            | SUBS
+            ;
+
+re_match    : var MATCH_OP regex { return handle_re($_[1], $_[3]); }
             ;
 
 var         : VAR { return handle_var($_[1]); }
@@ -460,7 +469,6 @@ sub handle_input_loop {
     return "for $iterator in $iterable:";
 }
 
-# todo: !~
 sub handle_re {
     my ($var, $re) = @_;
     if ($re =~ m{s/(.*)/(.*)/}) {
@@ -486,24 +494,27 @@ sub handle_truth {
     $type =~ s{elsif}{elif};
     my @truth_exprs = split(/\s(<=|>=|>|<|==|!=|eq|ne|and|or|\&|\^|\||<<|>>|~)\s/,
        $truth);
-    my $expr1 = $truth_exprs[0];
-    my $expr2 = $truth_exprs[2];
-    if ($expr1 =~ m{^(\$\w+)$}) {
-        # capture only the variable, i.e. only ($var) + 3
-        if (exists $sym_type_tab{$1} && $sym_type_tab{$1} eq _STRING &&
-            infer_type($expr2) ne _STRING) {
-            cast_assignment($1, _FLOAT);
+    # allow for simple exprs, such as while(1)
+    unless (scalar @truth_exprs < 3) {
+        my $expr1 = $truth_exprs[0];
+        my $expr2 = $truth_exprs[2];
+        if ($expr1 =~ m{^(\$\w+)$}) {
+            # capture only the variable, i.e. only ($var) + 3
+            if (exists $sym_type_tab{$1} && $sym_type_tab{$1} eq _STRING &&
+                infer_type($expr2) ne _STRING) {
+                cast_assignment($1, _FLOAT);
+            }
         }
-    }
-    if ($expr2 =~ m{^(\$\w+)$}) {
-        # capture only the variable, i.e. only ($var) + 3
-        if (exists $sym_type_tab{$1} && $sym_type_tab{$1} eq _STRING &&
-            infer_type($expr1) ne _STRING) {
-            cast_assignment($1, _FLOAT);
+        if ($expr2 =~ m{^(\$\w+)$}) {
+            # capture only the variable, i.e. only ($var) + 3
+            if (exists $sym_type_tab{$1} && $sym_type_tab{$1} eq _STRING &&
+                infer_type($expr1) ne _STRING) {
+                cast_assignment($1, _FLOAT);
+            }
         }
+        $truth =~ s{\beq\b}{==};
+        $truth =~ s{\bne\b}{!=};
     }
-    $truth =~ s{\beq\b}{==};
-    $truth =~ s{\bne\b}{!=};
     return ("$type $truth:");
 }
 
@@ -540,7 +551,9 @@ sub cast_assignment {
     # must contains an operator such that it is
     # either clear or the variables involved have
     # already been typecasted previously
-    # E.g. $var = $a + 10
+    # E.g. These won't be cast:
+    #      $var = $a + 10
+    #      $var = 10
     unless ($cast_value =~ m{^\S*$}) {
         return;
     }

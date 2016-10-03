@@ -62,17 +62,18 @@ sub lex {
     $$lineData =~ s{^\s*\.\.}{} and return ("RANGE", 0);
 
     # OPERATORS & VARIABLES/NUMBERS
-    $$lineData =~ s{^\s*([=!]~)}{} and return ("MATCH_OP", $1);
-    $$lineData =~ s{^\s*([\+-]){2}}{} and return ("CREMENT", $1);
-    $$lineData =~ s{^\s*(==|eq|!=|ne[^x]|>=|<=|>|<|<=>)}{} and return 
-    ("COMP_OP",
-    $1);
-    $$lineData =~ s{^\s*(&&|\|\|)}{} and return ("LOG_OP", $1);
-    $$lineData =~ s{^\s*(&|\||\^|<<|>>)}{} and return ("BW_BINARY_OP", $1);
-    $$lineData =~ s{^\s*(\~)}{} and return ("BW_UNARY_OP", $1);
-    $$lineData =~ s{^\s*(\+|\-|\*|/|%|\*\*)}{} and return ("MATH_OP", $1);
-    $$lineData =~ s{^\s*!}{} and return ("NOT", 0);
     if ($$lineData !~ m{^\s*<.*>} && $$lineData !~ m{^\s*/.*/}) {
+        $$lineData =~ s{^\s*([=!]~)}{} and return ("MATCH_OP", $1);
+        $$lineData =~ s{^\s*([\+-]){2}}{} and return ("CREMENT", $1);
+        $$lineData =~ s{^\s*(==|eq|!=|ne[^x]|>=|<=|>|<|<=>)}{} and return 
+        ("COMP_OP",
+        $1);
+        $$lineData =~ s{^\s*(&&|\|\|)}{} and return ("LOG_OP", $1);
+        $$lineData =~ s{^\s*(&|\||\^|<<|>>)}{} and return ("BW_BINARY_OP", $1);
+        $$lineData =~ s{^\s*(\~)}{} and return ("BW_UNARY_OP", $1);
+        $$lineData =~ s{^\s*(\+|\-|\*|/|%|\*\*)}{} and return ("MATH_OP", $1);
+        $$lineData =~ s{^\s*!}{} and return ("NOT", 0);
+
         $$lineData =~ s{^\s*([\n=\(\)\{\}]|=>)}{} and return ($1, $1);
     }
 
