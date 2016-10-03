@@ -1,29 +1,35 @@
 #!/usr/bin/perl -w
 
-my @a = ();
+my @arr = ();
 print "Push by entering a number, or enter a command (pop, shift, done).\n";
 while (1) {
     print "Enter/command: ";
-    $v = <STDIN>;
-    chomp $v;
+    $entry = <STDIN>;
+    chomp $entry;
 
-    if (!$v) {
+    if (!$entry) {
         last;
-    } elsif ($v eq "done") {
+    } elsif ($entry eq "done") {
         print "Bye!\n";
         exit 1;
-    } elsif ($v eq "pop") {
-        pop (@a);
-    } elsif ($v eq "shift") {
-        shift (@a);
-    } elsif ($v !~ m/^\d+$/) {
+    } elsif ($entry eq "pop") {
+        pop (@arr);
+    } elsif ($entry eq "shift") {
+        shift (@arr);
+    } elsif ($entry eq "reverse") {
+        reverse (@arr);
+    } elsif ($entry eq "unshift") {
+        print "Enter value to unshift: ";
+        my $unsh_entry = <STDIN>;
+        chomp $unsh_entry;
+        unshift (@arr, $unsh_entry);
+    } elsif ($entry !~ m/^\d+$/) {
         die "Please enter a number or a command (pop, shift, done)\n";
     } else {
-        push (@a, $v);
+        push (@arr, $entry);
     }
-
     print "Array now contains: ";
-    print join(', ', @a);
-    my $size = $#a + 1;
+    print join(', ', @arr);
+    my $size = $#arr + 1;
     printf "\nArray size is now %d\n", $size;
 }

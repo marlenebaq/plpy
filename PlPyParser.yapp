@@ -1,36 +1,30 @@
-%{  my %sym_tab;
-    my %sym_type_tab;
-    my %imports;
-    my %last_assignment;
-    my @print_vars;
-    my @py_header;
+# This PlPyParser.yapp file is used by yapp to generate
+# a Perl module, PlPyParser.pm
+
+########################################
+##########       HEADER       ##########
+########################################
+# Variables used within the parser's actions
+# Placed here for visibility
+%{  my @py_header;
     my @py_code;
     my $curr_line_num = 0; %}
-%token NUMBER
-%token SHEBANG
-%token PRINT
-%token END_OF_FILE
-%token COMMENT
-%token EMPTY_LINE
-%token WHITESPACE
-%token SEPARATOR
-%token IF
-%token CHOMP
-%token JOIN
-%token EXIT
-%token CREMENT
-%token MATCH_OP
-%token MATH_OP
-%token BW_BINARY_OP
-%token BW_UNARY_OP
-%token RANGE
 
-
+# Left associative operators
 %left MATH_OP
 %left BW_BINARY_OP
 %left BW_UNARY_OP
 %left RANGE
 
+# Tokens/terminals are indicated by CAPITALS
+# and are the smallest meaningful unit returned to the
+# parser by the lexer in plpy.pl.
+
+#########################################
+##########   GRAMMAR  RULES    ##########
+#########################################
+# Yapp compiles these grammar rules into the corresponding
+# Perl in generated perl module
 %%
 
 program     : line '\n'
@@ -67,12 +61,16 @@ line        : statement
                 $curr_line_num = scalar @py_code;
             }
             | UNKNOWN_TOK {
-                push @py_code, "# $_[1]\n";
+                push @py_code, "\n# $_[1]\n";
                 $curr_line_num = scalar @py_code;
             }
-            | no_line #no need to push anything
+            | no_line
+                # e.g. a solitary closing '}' in Perl will translate
+                # to nothing, so there is no need to push anything
             ;
 
+# Most meaningful rules will resolve to a statement
+# and return a formatted string
 statement   : print_st | assignment | condition | loop
             | chomp | string_func | read_op | re_match
             | list_func
@@ -137,12 +135,6 @@ string      : EMPTY_STRING
                 [2], $_[3]); }
             ;
 
-list        : value { "$_[1]"; }
-            | value SEPARATOR { "$_[1]$_[2]"; }
-            | list value { "$_[1]$_[2]"; }
-            | list value SEPARATOR { "$_[1]$_[2]$_[3]"; }
-            ;
-
 list_func   : PUSH '(' var SEPARATOR '(' list ')' ')'
                     { handle_list_func($_[1], $_[3], $_[6]); }
             | PUSH '(' var SEPARATOR value ')'
@@ -154,17 +146,18 @@ list_func   : PUSH '(' var SEPARATOR '(' list ')' ')'
             | POP '(' var ')' { handle_list_func($_[1], $_[3], undef); }
             | POP var { handle_list_func($_[1], $_[2], undef); }
             | UNSHIFT '(' var SEPARATOR '(' list ')' ')'
-                    { handle_list_func($_[1], $_[4], $_[6]); }
+                    { handle_list_func($_[1], $_[3], $_[6]); }
             | UNSHIFT '(' var SEPARATOR value ')'
-                    { handle_list_func($_[1], $_[4], $_[5]); }
+                    { handle_list_func($_[1], $_[3], $_[5]); }
             | UNSHIFT var SEPARATOR '(' list ')'
-                    { handle_list_func($_[1], $_[2], $_[4]); }
+                    { handle_list_func($_[1], $_[2], $_[5]); }
             | UNSHIFT var SEPARATOR value
                     { handle_list_func($_[1], $_[2], $_[4]); }
             | SHIFT '(' var ')'
                     { handle_list_func($_[1], $_[3], undef); }
             | SHIFT var
                     { handle_list_func($_[1], $_[2], undef); }
+            | REVERSE '(' var ')' { handle_list_func($_[1], $_[3], undef); }
             | REVERSE var { handle_list_func($_[1], $_[2], undef); }
             ;
 
@@ -185,14 +178,6 @@ value       : NUMBER
             | LEN var { "len($_[2]" }
             | KEYS var { "$_[2].keys()" }
             | var
-            ;
-
-hash_line   : WHITESPACE value SEPARATOR value SEPARATOR '\n' { "$_[2]: $_[4]";}
-            | WHITESPACE value '=>' value SEPARATOR '\n' { "$_[2]: $_[4]";}
-            ;
-
-hash        : hash_line
-            | hash hash_line { "$_[1], $_[2]";}
             ;
 
 assignment  : var '=' expr
@@ -265,6 +250,20 @@ regex       : MATCH
 re_match    : var MATCH_OP regex { handle_re($_[1], $_[2], $_[3]); }
             ;
 
+hash_line   : WHITESPACE value SEPARATOR value SEPARATOR '\n' { "$_[2]: $_[4]";}
+            | WHITESPACE value '=>' value SEPARATOR '\n' { "$_[2]: $_[4]";}
+            ;
+
+list        : value { "$_[1]"; }
+            | value SEPARATOR { "$_[1]$_[2]"; }
+            | list value { "$_[1]$_[2]"; }
+            | list value SEPARATOR { "$_[1]$_[2]$_[3]"; }
+            ;
+
+hash        : hash_line
+            | hash hash_line { "$_[1], $_[2]";}
+            ;
+
 var         : VAR { handle_var($_[1]); }
             | MY VAR { handle_var($_[2]); }
             ;
@@ -280,8 +279,18 @@ no_line     : '}'
 
 %%
 
+#########################################
+##########       FOOTER        ##########
+#########################################
+
+# hash tables used for the below subroutines
+my %sym_tab;
+my %sym_type_tab;
+my %import_tab;
+my %last_assignment_tab;
+
 # These subroutines are used for manipulating
-# and reproducing perl lines and python lines
+# and reproducing python lines from perl lines
 
 # Some of them handle tokens, for example vars,
 # and return a reformatted token which may later
@@ -296,6 +305,7 @@ no_line     : '}'
 
 # constants used for keeping track of var types
 # used mostly for typecasting
+
 use constant {
     _INT => "int",
     _FLOAT => "float",
@@ -314,7 +324,7 @@ my %syntax_lookup = (
 sub print_py {
     my @modules;
     # first prepend the modules as a single import header
-    foreach my $module (keys %imports ){
+    foreach my $module (keys %import_tab ){
         push @modules, $module;
     }
     if (scalar @modules > 0) {
@@ -538,12 +548,15 @@ sub handle_assignment {
     if ($var =~ m{^\$}) {
         $sym_tab{$var} = $val;
         $sym_type_tab{$var} = infer_type($var);
+    # Replace parentheses with the correct braces
+    # Lists can be assigned to another function,
+    # so only replace if they actually exist
     } elsif ($var =~ m{^@} && ($val eq "" || $val =~ m{^\(.*\)$})) {
         $val = "[$val]";
-    } elsif ($var =~ m{^%} && ($val eq "" || $val =~ m{^\(.*\)$})) {
+    } elsif ($var =~ m{^%}) {
         $val = "{$val}";
     }
-    $last_assignment{$var} = $curr_line_num;
+    $last_assignment_tab{$var} = $curr_line_num;
     return "$var = $val";
 }
 
@@ -677,7 +690,7 @@ sub handle_open {
 # the last assignment of the var
 sub cast_assignment {
     my ($var, $typecast) = @_;
-    my $assn = $py_code[$last_assignment{$var}];
+    my $assn = $py_code[$last_assignment_tab{$var}];
     my $whitespace = "";
     if ($assn =~ m{^(\s+)}) {
         $whitespace = $1;
@@ -702,17 +715,18 @@ sub cast_assignment {
     my $var_str = $var;
     $var_str =~ s{\$}{};
     $assn = "$whitespace$var_str = $typecast($components[1])\n";
-    $py_code[$last_assignment{$var}] = "$assn";
+    $py_code[$last_assignment_tab{$var}] = "$assn";
 }
 
 
 # Import modules and remove @, $, % from vars
 sub do_imports_and_clean_vars {
     my ($line) = @_;
-    # import any module return "$var = [$vals]";
+    # import any modules used in the line
+    # if necessary
     if ($line =~ m{(sys|fileinput|re)\.}) {
-        unless (exists $imports{$1} && $imports{$1} == 1) {
-            $imports{$1} = 1;
+        unless (exists $import_tab{$1} && $import_tab{$1} == 1) {
+            $import_tab{$1} = 1;
         }
     }
     my @components = split(/(?<=["'])/, $line);
