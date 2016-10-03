@@ -48,7 +48,7 @@ sub lex {
 
     # 'fundamental' STATEMENTS
     $$lineData =~ s{^\s*(printf?)\s*}{} and return ("PRINT", $1);
-    $$lineData =~ s{^\s*(if)\s*}{} and return ("IF", $1);
+    $$lineData =~ s{^\s*(if|unless)\s*}{} and return ("IF", $1);
     $$lineData =~ s{^\s*(elsif)\s*}{} and return ("ELSIF", $1);
     $$lineData =~ s{^\s*(else)\s*\{}}{} and return ("ELSE", $1);
     $$lineData =~ s{^\s*(while|foreach|for)\s*}{} and return ("LOOP_TYPE", $1);

@@ -338,10 +338,16 @@ sub handle_print {
         # split by CONCATENATE operator
         my @strings = split(/\s+\+\s+/, $arg);
         for my $string (@strings) {
+            # a dirty dirty hack
+            if ($string =~ m{(\$ARGV\[.*\])}) {
+                $string = handle_var($1);
+                $string =~ s{^"}{}g;
+                $string =~ s{"$}{}g;
             # simple lone vars
             # E.g. print ($var) ==> print var
             #      print "$var" ==> print var
-            if ($string =~ m{^\(?([^"]*)(\[.*\])?\)?$} || $string =~ m{^"?(\$\w+)(\[.*\])?"?$}) {
+            } elsif ($string =~ m{^\(?([^"]*)(\[.*\])?\)?$} || $string =~ m{^"?
+                (\$\w+)(\[.*\])?"?$}) {
                 my $original_var = $1;
                 my $var_replace = handle_var($original_var);
                 $string =~ s{$original_var}{$var_replace}e;
@@ -605,6 +611,7 @@ sub handle_re {
 sub handle_truth {
     my ($type, $truth) = @_;
     $type =~ s{elsif}{elif};
+    $type =~ s{unless}{if not};
     my @truth_exprs = split(/\s(<=|>=|>|<|==|!=|eq|ne|and|or|\&|\^|\||<<|>>|~)\s/,
        $truth);
     # allow for simple exprs, such as while(1)
@@ -628,7 +635,7 @@ sub handle_truth {
         $truth =~ s{\beq\b}{==};
         $truth =~ s{\bne\b}{!=};
     }
-    return ("$type $truth:");
+    return "$type $truth:";
 }
 
 
