@@ -1,9 +1,10 @@
+
 #!/usr/bin/perl -w
-$title = "Test 00: Print string formatting and concatentation\n";
+
+# TEST 00: Print string formatting and concatentation
 $b = "Bat";
 $c = "Chimpanzee";
 $f = "Fox";
-print $title, "\n";
 print "Aardvark " . "$b " . $c . " " . "Dog " . "$f " . "Goat\n";
 
 $a_num = 5;

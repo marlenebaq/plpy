@@ -1,9 +1,11 @@
 #!/usr/bin/perl -w
 
-my %mark_tab = ();
-while (my $line = <>) {
-	my @words = split(/\s+/, $line);
-	$mark_tab{$words[0]} = $words[1];
+# TEST 02: NESTED STATEMENTS/LOOPS
+my $a = 0;
+my $b = 0;
+my $c = 0;
+while ($a < 10) {
+	while ($b < )
 }
 
 for my $key (keys %mark_tab) {

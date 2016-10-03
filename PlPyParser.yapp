@@ -163,7 +163,7 @@ list_func   : PUSH '(' var SEPARATOR '(' list ')' ')'
 
 expr        : expr MATH_OP expr { "$_[1] $_[2] $_[3]" }
             | expr BW_BINARY_OP expr { "$_[1] $_[2] $_[3]" }
-            | BW_UNARY_OP expr
+            | BW_UNARY_OP expr { "$_[1]$_[2]" }
             | expr RANGE expr
                 {
                     my $start = $_[1];
@@ -181,51 +181,33 @@ value       : NUMBER
             ;
 
 assignment  : var '=' expr
-                {
-                    handle_assignment($_[1], $_[3]);
-                }
+                { handle_assignment($_[1], $_[2], $_[3]); }
             | var '=' input
-                {
-                    handle_assignment($_[1], $_[3]);
-                }
+                { handle_assignment($_[1], $_[2], $_[3]); }
             | var '=' '(' list ')'
-                {
-                    handle_assignment($_[1], $_[4]);
-                }
+                { handle_assignment($_[1], $_[2], $_[4]); }
             | var '=' '(' '\n' hash ')'
-                {
-                    handle_assignment($_[1], $_[5]);
-                }
+                { handle_assignment($_[1], $_[2], $_[5]); }
             | var '=' '(' ')'
-                {
-                    handle_assignment($_[1], "");
-                }
+                { handle_assignment($_[1], $_[2], ""); }
             | var '=' string_func
-                {
-                    handle_assignment($_[1], $_[3]);
-                }
-            | var CONCAT_EQ value { handle_concat($_[1], $_[2], $_[3]); }
+                { handle_assignment($_[1], $_[2], $_[3]); }
+            | var SHORT_MATH value
+                { handle_assignment($_[1], $_[2], $_[3]); }
+            | var CONCAT_EQ value
+                { handle_concat($_[1], $_[2], $_[3]); }
             | var CREMENT
-                {
-                    handle_crement($_[1], $_[2]);
-                }
+                { handle_crement($_[1], $_[2]); }
             ;
 
 input       : INPUT
-                {
-                    my $read_op = $_[1];
-                    handle_read_op($read_op);
-                }
+                { handle_read_op($_[1]); }
             ;
 
 condition   : IF '(' truth ')' '{'
-                {
-                    handle_truth($_[1], $_[3]);
-                }
+                { handle_truth($_[1], $_[3]); }
             | '}' ELSIF '(' truth ')' '{'
-                {
-                    handle_truth($_[2], $_[4]);
-                }
+                { handle_truth($_[2], $_[4]); }
             | '}' ELSE '{' { "else:"; }
             ;
 
@@ -236,9 +218,7 @@ truth_op    : LOG_OP
 truth       : expr
             | re_match
             | truth truth_op truth
-                {
-                    handle_truth_op($_[1], $_[2], $_[3]);
-                }
+                { handle_truth_op($_[1], $_[2], $_[3]); }
             | '(' truth ')' { "($_[2])" }
             | NOT truth { "not $_[2]" }
             ;
@@ -250,8 +230,10 @@ regex       : MATCH
 re_match    : var MATCH_OP regex { handle_re($_[1], $_[2], $_[3]); }
             ;
 
-hash_line   : WHITESPACE value SEPARATOR value SEPARATOR '\n' { "$_[2]: $_[4]";}
-            | WHITESPACE value '=>' value SEPARATOR '\n' { "$_[2]: $_[4]";}
+hash_line   : WHITESPACE value SEPARATOR value SEPARATOR '\n'
+                { "$_[2]: $_[4]";}
+            | WHITESPACE value '=>' value SEPARATOR '\n'
+                { "$_[2]: $_[4]" }
             ;
 
 list        : value { "$_[1]"; }
@@ -532,7 +514,7 @@ sub handle_crement {
     if ($crement eq "+") {
         $expr = "$var + 1";
     }
-    return handle_assignment($var, $expr);
+    return handle_assignment($var, 0, $expr);
 }
 
 
@@ -542,7 +524,12 @@ sub handle_crement {
 # Also does simple bracket substitutions for
 # arrays and hashes
 sub handle_assignment {
-    my ($var, $val) = @_;
+    my ($var, $op, $val) = @_;
+    # Assignments using SHORTHAND math operators
+    #   E.g. $var += 5
+    if ($op =~ m{([\+\-\*/])=}) {
+        $val = "$var $1 $val";
+    }
     # for empty declarations
     # E.g. [], ()
     if ($var =~ m{^\$}) {
@@ -656,7 +643,7 @@ sub handle_truth_op {
 sub handle_concat {
     my ($str1, $concat, $str2) = @_;
     if ($concat =~ m{^\.=$}) {
-        return handle_assignment($str1, "$str1 + $str2");
+        return handle_assignment($str1, 0, "$str1 + $str2");
     }
     return "$str1 + $str2";
 }

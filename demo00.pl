@@ -1,5 +1,12 @@
 #!/usr/bin/perl -w
 
+# Demo basics such as:
+#   variables and assignments
+#   conditions and truths
+#   print statements
+#   loops
+#   exit
+
 $answer = "The answer to everything";
 $a = 2;
 $b = 18;

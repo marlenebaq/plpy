@@ -1,7 +1,10 @@
 #!/usr/bin/perl -w
 
+# Demo further array functionalities
+
 my @arr = ();
-print "Push by entering a number, or enter a command (pop, shift, done).\n";
+print "Push by entering a number, or enter a command"
+print "(pop, shift, reverse, unshift, done).\n";
 while (1) {
     print "Enter/command: ";
     $entry = <STDIN>;
